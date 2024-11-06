@@ -7,20 +7,26 @@ part of flutter_blue_plus;
 class BluetoothDescriptor {
   final DeviceIdentifier remoteId;
   final Guid serviceUuid;
+  final int serviceInstanceId;
   final Guid characteristicUuid;
+  final int characteristicInstanceId;
   final Guid descriptorUuid;
 
   BluetoothDescriptor({
     required this.remoteId,
     required this.serviceUuid,
+    required this.serviceInstanceId,
     required this.characteristicUuid,
+    required this.characteristicInstanceId,
     required this.descriptorUuid,
   });
 
   BluetoothDescriptor.fromProto(BmBluetoothDescriptor p)
       : remoteId = p.remoteId,
         serviceUuid = p.serviceUuid,
+        serviceInstanceId = p.serviceInstanceId,
         characteristicUuid = p.characteristicUuid,
+        characteristicInstanceId = p.characteristicInstanceId,
         descriptorUuid = p.descriptorUuid;
 
   /// convenience accessor
@@ -86,8 +92,11 @@ class BluetoothDescriptor {
       var request = BmReadDescriptorRequest(
         remoteId: remoteId,
         serviceUuid: serviceUuid,
+        serviceInstanceId: serviceInstanceId,
         secondaryServiceUuid: null,
+        secondaryServiceInstanceId: null,
         characteristicUuid: characteristicUuid,
+        characteristicInstanceId: characteristicInstanceId,
         descriptorUuid: descriptorUuid,
       );
 
@@ -141,8 +150,11 @@ class BluetoothDescriptor {
       var request = BmWriteDescriptorRequest(
         remoteId: remoteId,
         serviceUuid: serviceUuid,
+        serviceInstanceId: serviceInstanceId,
         secondaryServiceUuid: null,
+        secondaryServiceInstanceId: null,
         characteristicUuid: characteristicUuid,
+        characteristicInstanceId: characteristicInstanceId,
         descriptorUuid: descriptorUuid,
         value: value,
       );

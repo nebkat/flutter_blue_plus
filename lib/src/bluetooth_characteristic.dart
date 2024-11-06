@@ -9,21 +9,30 @@ final Guid cccdUuid = Guid("00002902-0000-1000-8000-00805f9b34fb");
 class BluetoothCharacteristic {
   final DeviceIdentifier remoteId;
   final Guid serviceUuid;
+  final int serviceInstanceId;
   final Guid? secondaryServiceUuid;
+  final int? secondaryServiceInstanceId;
   final Guid characteristicUuid;
+  final int characteristicInstanceId;
 
   BluetoothCharacteristic({
     required this.remoteId,
     required this.serviceUuid,
+    required this.serviceInstanceId,
     this.secondaryServiceUuid,
+    this.secondaryServiceInstanceId,
     required this.characteristicUuid,
+    required this.characteristicInstanceId,
   });
 
   BluetoothCharacteristic.fromProto(BmBluetoothCharacteristic p)
       : remoteId = p.remoteId,
         serviceUuid = p.serviceUuid,
-        secondaryServiceUuid = p.secondaryServiceUuid != null ? p.secondaryServiceUuid! : null,
-        characteristicUuid = p.characteristicUuid;
+        serviceInstanceId = p.serviceInstanceId,
+        secondaryServiceUuid = p.secondaryServiceUuid,
+        secondaryServiceInstanceId = p.secondaryServiceInstanceId,
+        characteristicUuid = p.characteristicUuid,
+        characteristicInstanceId = p.characteristicInstanceId;
 
   /// convenience accessor
   Guid get uuid => characteristicUuid;
@@ -111,8 +120,11 @@ class BluetoothCharacteristic {
       var request = BmReadCharacteristicRequest(
         remoteId: remoteId,
         characteristicUuid: characteristicUuid,
+        characteristicInstanceId: characteristicInstanceId,
         serviceUuid: serviceUuid,
+        serviceInstanceId: serviceInstanceId,
         secondaryServiceUuid: secondaryServiceUuid,
+        secondaryServiceInstanceId: secondaryServiceInstanceId,
       );
 
       var responseStream = FlutterBluePlus._methodStream.stream
@@ -182,8 +194,11 @@ class BluetoothCharacteristic {
       var request = BmWriteCharacteristicRequest(
         remoteId: remoteId,
         characteristicUuid: characteristicUuid,
+        characteristicInstanceId: characteristicInstanceId,
         serviceUuid: serviceUuid,
+        serviceInstanceId: serviceInstanceId,
         secondaryServiceUuid: secondaryServiceUuid,
+        secondaryServiceInstanceId: secondaryServiceInstanceId,
         writeType: writeType,
         allowLongWrite: allowLongWrite,
         value: value,
@@ -246,8 +261,11 @@ class BluetoothCharacteristic {
       var request = BmSetNotifyValueRequest(
         remoteId: remoteId,
         serviceUuid: serviceUuid,
+        serviceInstanceId: serviceInstanceId,
         secondaryServiceUuid: secondaryServiceUuid,
+        secondaryServiceInstanceId: secondaryServiceInstanceId,
         characteristicUuid: characteristicUuid,
+        characteristicInstanceId: characteristicInstanceId,
         forceIndications: forceIndications,
         enable: notify,
       );
@@ -292,11 +310,11 @@ class BluetoothCharacteristic {
   BmBluetoothService? get _bmsvc {
     if (FlutterBluePlus._knownServices[remoteId] != null) {
       for (var s in FlutterBluePlus._knownServices[remoteId]!.services) {
-        if (s.serviceUuid == serviceUuid) {
+        if (s.serviceUuid == serviceUuid && s.serviceInstanceId == serviceInstanceId) {
           if (secondaryServiceUuid != null) {
             // search includedServices (i.e. secondary services)
             for (var s2 in s.includedServices) {
-              if (s2.serviceUuid == secondaryServiceUuid) {
+              if (s2.serviceUuid == secondaryServiceUuid && s2.serviceInstanceId == secondaryServiceInstanceId) {
                 return s2;
               }
             }
@@ -313,7 +331,7 @@ class BluetoothCharacteristic {
   BmBluetoothCharacteristic? get _bmchr {
     if (_bmsvc != null) {
       for (var c in _bmsvc!.characteristics) {
-        if (c.characteristicUuid == uuid) {
+        if (c.characteristicUuid == uuid && c.characteristicInstanceId == characteristicInstanceId) {
           return c;
         }
       }

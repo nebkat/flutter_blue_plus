@@ -835,8 +835,11 @@ public class FlutterBluePlusPlugin implements
                     HashMap<String, Object> data = call.arguments();
                     String remoteId =             (String) data.get("remote_id");
                     String serviceUuid =          (String) data.get("service_uuid");
+                    int serviceInstanceId =          (int) data.get("service_instance_id");
                     String secondaryServiceUuid = (String) data.get("secondary_service_uuid");
+                    Integer secondaryServiceInstanceId = (Integer) data.get("secondary_service_instance_id");
                     String characteristicUuid =   (String) data.get("characteristic_uuid");
+                    int characteristicInstanceId =   (int) data.get("characteristic_instance_id");
 
                     // check connection
                     BluetoothGatt gatt = mConnectedDevices.get(remoteId);
@@ -849,7 +852,7 @@ public class FlutterBluePlusPlugin implements
                     waitIfBonding();
 
                     // find characteristic
-                    ChrFound found = locateCharacteristic(gatt, serviceUuid, secondaryServiceUuid, characteristicUuid);
+                    ChrFound found = locateCharacteristic(gatt, serviceUuid, serviceInstanceId, secondaryServiceUuid, secondaryServiceInstanceId, characteristicUuid, characteristicInstanceId);
                     if (found.error != null) {
                         result.error("readCharacteristic", found.error, null);
                         break;
@@ -881,8 +884,11 @@ public class FlutterBluePlusPlugin implements
                     HashMap<String, Object> data = call.arguments();
                     String remoteId =             (String) data.get("remote_id");
                     String serviceUuid =          (String) data.get("service_uuid");
+                    int serviceInstanceId =          (int) data.get("service_instance_id");
                     String secondaryServiceUuid = (String) data.get("secondary_service_uuid");
+                    Integer secondaryServiceInstanceId = (Integer) data.get("secondary_service_instance_id");
                     String characteristicUuid =   (String) data.get("characteristic_uuid");
+                    int characteristicInstanceId =   (int) data.get("characteristic_instance_id");
                     String value =                (String) data.get("value");
                     int writeTypeInt =               (int) data.get("write_type");
                     boolean allowLongWrite =        ((int) data.get("allow_long_write")) != 0;
@@ -902,7 +908,7 @@ public class FlutterBluePlusPlugin implements
                     waitIfBonding();
 
                     // find characteristic
-                    ChrFound found = locateCharacteristic(gatt, serviceUuid, secondaryServiceUuid, characteristicUuid);
+                    ChrFound found = locateCharacteristic(gatt, serviceUuid, serviceInstanceId, secondaryServiceUuid, secondaryServiceInstanceId, characteristicUuid, characteristicInstanceId);
                     if (found.error != null) {
                         result.error("writeCharacteristic", found.error, null);
                         break;
@@ -978,8 +984,11 @@ public class FlutterBluePlusPlugin implements
                     HashMap<String, Object> data = call.arguments();
                     String remoteId =             (String) data.get("remote_id");
                     String serviceUuid =          (String) data.get("service_uuid");
+                    int serviceInstanceId =          (int) data.get("service_instance_id");
                     String secondaryServiceUuid = (String) data.get("secondary_service_uuid");
+                    Integer secondaryServiceInstanceId = (Integer) data.get("secondary_service_instance_id");
                     String characteristicUuid =   (String) data.get("characteristic_uuid");
+                    int characteristicInstanceId =   (int) data.get("characteristic_instance_id");
                     String descriptorUuid =       (String) data.get("descriptor_uuid");
 
                     // check connection
@@ -993,7 +1002,7 @@ public class FlutterBluePlusPlugin implements
                     waitIfBonding();
 
                     // find characteristic
-                    ChrFound found = locateCharacteristic(gatt, serviceUuid, secondaryServiceUuid, characteristicUuid);
+                    ChrFound found = locateCharacteristic(gatt, serviceUuid, serviceInstanceId, secondaryServiceUuid, secondaryServiceInstanceId, characteristicUuid, characteristicInstanceId);
                     if (found.error != null) {
                         result.error("readDescriptor", found.error, null);
                         break;
@@ -1025,9 +1034,13 @@ public class FlutterBluePlusPlugin implements
                     HashMap<String, Object> data = call.arguments();
                     String remoteId =             (String) data.get("remote_id");
                     String serviceUuid =          (String) data.get("service_uuid");
+                    int serviceInstanceId =          (int) data.get("service_instance_id");
                     String secondaryServiceUuid = (String) data.get("secondary_service_uuid");
+                    Integer secondaryServiceInstanceId = (Integer) data.get("secondary_service_instance_id");
                     String characteristicUuid =   (String) data.get("characteristic_uuid");
+                    int characteristicInstanceId =   (int) data.get("characteristic_instance_id");
                     String descriptorUuid =       (String) data.get("descriptor_uuid");
+
                     String value =                (String) data.get("value");
 
                     // check connection
@@ -1041,7 +1054,7 @@ public class FlutterBluePlusPlugin implements
                     waitIfBonding();
 
                     // find characteristic
-                    ChrFound found = locateCharacteristic(gatt, serviceUuid, secondaryServiceUuid, characteristicUuid);
+                    ChrFound found = locateCharacteristic(gatt, serviceUuid, serviceInstanceId, secondaryServiceUuid, secondaryServiceInstanceId, characteristicUuid, characteristicInstanceId);
                     if (found.error != null) {
                         result.error("writeDescriptor", found.error, null);
                         break;
@@ -1105,8 +1118,11 @@ public class FlutterBluePlusPlugin implements
                     HashMap<String, Object> data = call.arguments();
                     String remoteId =             (String) data.get("remote_id");
                     String serviceUuid =          (String) data.get("service_uuid");
+                    int serviceInstanceId =          (int) data.get("service_instance_id");
                     String secondaryServiceUuid = (String) data.get("secondary_service_uuid");
+                    Integer secondaryServiceInstanceId = (Integer) data.get("secondary_service_instance_id");
                     String characteristicUuid =   (String) data.get("characteristic_uuid");
+                    int characteristicInstanceId =   (int) data.get("characteristic_instance_id");
                     boolean forceIndications =   (boolean) data.get("force_indications");
                     boolean enable =             (boolean) data.get("enable");
 
@@ -1121,7 +1137,7 @@ public class FlutterBluePlusPlugin implements
                     waitIfBonding();
 
                     // find characteristic
-                    ChrFound found = locateCharacteristic(gatt, serviceUuid, secondaryServiceUuid, characteristicUuid);
+                    ChrFound found = locateCharacteristic(gatt, serviceUuid, serviceInstanceId, secondaryServiceUuid, secondaryServiceInstanceId, characteristicUuid, characteristicInstanceId);
                     if (found.error != null) {
                         result.error("setNotifyValue", found.error, null);
                         break;
@@ -1611,11 +1627,14 @@ public class FlutterBluePlusPlugin implements
 
     private ChrFound locateCharacteristic(BluetoothGatt gatt,
                                                  String serviceId,
+                                                 int serviceInstanceId,
                                                  String secondaryServiceId,
-                                                 String characteristicId)
+                                                 Integer secondaryServiceInstanceId,
+                                                 String characteristicId,
+                                                 int characteristicInstanceId)
     {
         // primary
-        BluetoothGattService primaryService = getServiceFromArray(serviceId, gatt.getServices());
+        BluetoothGattService primaryService = getServiceFromArray(serviceId, serviceInstanceId, gatt.getServices());
         if(primaryService == null) {
             return new ChrFound(null, "service not found '" + serviceId + "'");
         }
@@ -1623,7 +1642,7 @@ public class FlutterBluePlusPlugin implements
         // secondary
         BluetoothGattService secondaryService = null;
         if(secondaryServiceId != null && secondaryServiceId.length() > 0) {
-            secondaryService = getServiceFromArray(secondaryServiceId, primaryService.getIncludedServices());
+            secondaryService = getServiceFromArray(secondaryServiceId, secondaryServiceInstanceId, primaryService.getIncludedServices());
             if(secondaryService == null) {
                 return new ChrFound(null, "secondaryService not found '" + secondaryServiceId + "'");
             }
@@ -1633,7 +1652,7 @@ public class FlutterBluePlusPlugin implements
         BluetoothGattService service = (secondaryService != null) ? secondaryService : primaryService;
 
         // characteristic
-        BluetoothGattCharacteristic characteristic = getCharacteristicFromArray(characteristicId, service.getCharacteristics());
+        BluetoothGattCharacteristic characteristic = getCharacteristicFromArray(characteristicId, characteristicInstanceId, service.getCharacteristics());
         if(characteristic == null) {
             return new ChrFound(null, "characteristic not found in service " +
                 "(chr: '" + characteristicId + "' svc: '" + serviceId + "')");
@@ -1642,20 +1661,20 @@ public class FlutterBluePlusPlugin implements
         return new ChrFound(characteristic, null);
     }
 
-    private BluetoothGattService getServiceFromArray(String uuid, List<BluetoothGattService> array)
+    private BluetoothGattService getServiceFromArray(String uuid, int instanceId, List<BluetoothGattService> array)
     {
         for (BluetoothGattService s : array) {
-            if (uuid128(s.getUuid()).equals(uuid128(uuid))) {
+            if (uuid128(s.getUuid()).equals(uuid128(uuid)) && s.getInstanceId() == instanceId) {
                 return s;
             }
         }
         return null;
     }
 
-    private BluetoothGattCharacteristic getCharacteristicFromArray(String uuid, List<BluetoothGattCharacteristic> array)
+    private BluetoothGattCharacteristic getCharacteristicFromArray(String uuid, int instanceId, List<BluetoothGattCharacteristic> array)
     {
         for (BluetoothGattCharacteristic c : array) {
-            if (uuid128(c.getUuid()).equals(uuid128(uuid))) {
+            if (uuid128(c.getUuid()).equals(uuid128(uuid)) && c.getInstanceId() == instanceId) {
                 return c;
             }
         }
@@ -2253,7 +2272,7 @@ public class FlutterBluePlusPlugin implements
             ServicePair pair = getServicePair(gatt, characteristic);
 
             // GATT Service?
-            if (uuidStr(pair.primary) == "1800") {
+            if (uuidStr(pair.primary.getUuid()) == "1800") {
 
                 // services changed
                 if (uuidStr(characteristic.getUuid()) == "2A05") {
@@ -2265,11 +2284,14 @@ public class FlutterBluePlusPlugin implements
             // see: BmCharacteristicData
             HashMap<String, Object> response = new HashMap<>();
             response.put("remote_id", gatt.getDevice().getAddress());
-            response.put("service_uuid", uuidStr(pair.primary));
+            response.put("service_uuid", uuidStr(pair.primary.getUuid()));
+            response.put("service_instance_id", pair.primary.getInstanceId());
             if (pair.secondary != null) {
-                response.put("secondary_service_uuid", uuidStr(pair.secondary));
+                response.put("secondary_service_uuid", uuidStr(pair.secondary.getUuid()));
+                response.put("secondary_service_instance_id", pair.secondary.getInstanceId());
             }
             response.put("characteristic_uuid", uuidStr(characteristic.getUuid()));
+            response.put("characteristic_instance_id", characteristic.getInstanceId());
             response.put("value", bytesToHex(value));
             response.put("success", status == BluetoothGatt.GATT_SUCCESS ? 1 : 0);
             response.put("error_code", status);
@@ -2318,9 +2340,12 @@ public class FlutterBluePlusPlugin implements
 
             // for convenience
             String remoteId = gatt.getDevice().getAddress();
-            String serviceUuid = uuidStr(pair.primary);
-            String secondaryServiceUuid = pair.secondary != null ? uuidStr(pair.secondary) : null;
+            String serviceUuid = uuidStr(pair.primary.getUuid());
+            int serviceInstanceId = pair.primary.getInstanceId();
+            String secondaryServiceUuid = pair.secondary != null ? uuidStr(pair.secondary.getUuid()) : null;
+            Integer secondaryServiceInstanceId = pair.secondary != null ? pair.secondary.getInstanceId() : null;
             String characteristicUuid = uuidStr(characteristic.getUuid());
+            int characteristicInstanceId = characteristic.getInstanceId();
 
             // what data did we write?
             String key = remoteId + ":" + serviceUuid + ":" + characteristicUuid;
@@ -2331,10 +2356,13 @@ public class FlutterBluePlusPlugin implements
             HashMap<String, Object> response = new HashMap<>();
             response.put("remote_id", remoteId);
             response.put("service_uuid", serviceUuid);
+            response.put("service_instance_id", serviceInstanceId);
             if (secondaryServiceUuid != null) {
                 response.put("secondary_service_uuid", secondaryServiceUuid);
+                response.put("secondary_service_instance_id", secondaryServiceInstanceId);
             }
             response.put("characteristic_uuid", characteristicUuid);
+            response.put("characteristic_instance_id", characteristicInstanceId);
             response.put("value", value);
             response.put("success", status == BluetoothGatt.GATT_SUCCESS ? 1 : 0);
             response.put("error_code", status);
@@ -2358,11 +2386,14 @@ public class FlutterBluePlusPlugin implements
             // see: BmDescriptorData
             HashMap<String, Object> response = new HashMap<>();
             response.put("remote_id", gatt.getDevice().getAddress());
-            response.put("service_uuid", uuidStr(pair.primary));
+            response.put("service_uuid", uuidStr(pair.primary.getUuid()));
+            response.put("service_instance_id", pair.primary.getInstanceId());
             if (pair.secondary != null) {
-                response.put("secondary_service_uuid", uuidStr(pair.secondary));
+                response.put("secondary_service_uuid", uuidStr(pair.secondary.getUuid()));
+                response.put("secondary_service_instance_id", pair.secondary.getInstanceId());
             }
             response.put("characteristic_uuid", uuidStr(descriptor.getCharacteristic().getUuid()));
+            response.put("characteristic_instance_id", descriptor.getCharacteristic().getInstanceId());
             response.put("descriptor_uuid", uuidStr(descriptor.getUuid()));
             response.put("value", bytesToHex(value));
             response.put("success", status == BluetoothGatt.GATT_SUCCESS ? 1 : 0);
@@ -2385,9 +2416,12 @@ public class FlutterBluePlusPlugin implements
 
             // for convenience
             String remoteId = gatt.getDevice().getAddress();
-            String serviceUuid = uuidStr(pair.primary);
-            String secondaryServiceUuid = pair.secondary != null ? uuidStr(pair.secondary) : null;
+            String serviceUuid = uuidStr(pair.primary.getUuid());
+            int serviceInstanceId = pair.primary.getInstanceId();
+            String secondaryServiceUuid = pair.secondary != null ? uuidStr(pair.secondary.getUuid()) : null;
+            Integer secondaryServiceInstanceId = pair.secondary != null ? pair.secondary.getInstanceId() : null;
             String characteristicUuid = uuidStr(descriptor.getCharacteristic().getUuid());
+            int characteristicInstanceId = descriptor.getCharacteristic().getInstanceId();
             String descriptorUuid = uuidStr(descriptor.getUuid());
 
             // what data did we write?
@@ -2399,10 +2433,13 @@ public class FlutterBluePlusPlugin implements
             HashMap<String, Object> response = new HashMap<>();
             response.put("remote_id", remoteId);
             response.put("service_uuid", serviceUuid);
+            response.put("service_instance_id", serviceInstanceId);
             if (secondaryServiceUuid != null) {
                 response.put("secondary_service_uuid", secondaryServiceUuid);
+                response.put("secondary_service_instance_id", secondaryServiceInstanceId);
             }
             response.put("characteristic_uuid", characteristicUuid);
+            response.put("characteristic_instance_id", characteristicInstanceId);
             response.put("descriptor_uuid", descriptorUuid);
             response.put("value", value);
             response.put("success", status == BluetoothGatt.GATT_SUCCESS ? 1 : 0);
@@ -2601,6 +2638,7 @@ public class FlutterBluePlusPlugin implements
         HashMap<String, Object> map = new HashMap<>();
         map.put("remote_id", device.getAddress());
         map.put("service_uuid", uuidStr(service.getUuid()));
+        map.put("service_instance_id", service.getInstanceId());
         map.put("is_primary", service.getType() == BluetoothGattService.SERVICE_TYPE_PRIMARY ? 1 : 0);
         map.put("characteristics", characteristics);
         map.put("included_services", includedServices);
@@ -2619,11 +2657,14 @@ public class FlutterBluePlusPlugin implements
         // See: BmBluetoothCharacteristic
         HashMap<String, Object> map = new HashMap<>();
         map.put("remote_id", device.getAddress());
-        map.put("service_uuid", uuidStr(pair.primary));
+        map.put("service_uuid", uuidStr(pair.primary.getUuid()));
+        map.put("service_instance_id", pair.primary.getInstanceId());
         if (pair.secondary != null) {
-            map.put("secondary_service_uuid", uuidStr(pair.secondary));
+            map.put("secondary_service_uuid", uuidStr(pair.secondary.getUuid()));
+            map.put("secondary_service_instance_id", pair.secondary.getInstanceId());
         }
         map.put("characteristic_uuid", uuidStr(characteristic.getUuid()));
+        map.put("characteristic_instance_id", characteristic.getInstanceId());
         map.put("descriptors", descriptors);
         map.put("properties", bmCharacteristicProperties(characteristic.getProperties()));
         return map;
@@ -2635,7 +2676,9 @@ public class FlutterBluePlusPlugin implements
         map.put("remote_id", device.getAddress());
         map.put("descriptor_uuid", uuidStr(descriptor.getUuid()));
         map.put("characteristic_uuid", uuidStr(descriptor.getCharacteristic().getUuid()));
+        map.put("characteristic_instance_id", descriptor.getCharacteristic().getInstanceId());
         map.put("service_uuid", uuidStr(descriptor.getCharacteristic().getService().getUuid()));
+        map.put("service_instance_id", descriptor.getCharacteristic().getService().getInstanceId());
         return map;
     }
 
@@ -2696,8 +2739,8 @@ public class FlutterBluePlusPlugin implements
     }
 
     public static class ServicePair {
-        public UUID primary;
-        public UUID secondary;
+        public BluetoothGattService primary;
+        public BluetoothGattService secondary;
     }
 
     static ServicePair getServicePair(BluetoothGatt gatt, BluetoothGattCharacteristic characteristic) {
@@ -2708,7 +2751,7 @@ public class FlutterBluePlusPlugin implements
 
         // is this a primary service?
         if(service.getType() == BluetoothGattService.SERVICE_TYPE_PRIMARY) {
-            result.primary = service.getUuid();
+            result.primary = service;
             return result;
         }
 
@@ -2716,8 +2759,8 @@ public class FlutterBluePlusPlugin implements
         for(BluetoothGattService primary : gatt.getServices()) {
             for(BluetoothGattService secondary : primary.getIncludedServices()) {
                 if(secondary.getUuid().equals(service.getUuid())) {
-                    result.primary = primary.getUuid();
-                    result.secondary = secondary.getUuid();
+                    result.primary = primary;
+                    result.secondary = secondary;
                     return result;
                 }
             }

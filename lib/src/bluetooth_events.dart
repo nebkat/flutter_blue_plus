@@ -185,8 +185,11 @@ class OnCharacteristicReceivedEvent {
   BluetoothCharacteristic get characteristic => BluetoothCharacteristic(
       remoteId: _response.remoteId,
       characteristicUuid: _response.characteristicUuid,
+      characteristicInstanceId: _response.characteristicInstanceId,
       serviceUuid: _response.serviceUuid,
-      secondaryServiceUuid: _response.secondaryServiceUuid);
+      serviceInstanceId: _response.serviceInstanceId,
+      secondaryServiceUuid: _response.secondaryServiceUuid,
+      secondaryServiceInstanceId: _response.secondaryServiceInstanceId);
 
   /// the new data
   List<int> get value => _response.value;
@@ -208,8 +211,11 @@ class OnCharacteristicWrittenEvent {
   BluetoothCharacteristic get characteristic => BluetoothCharacteristic(
       remoteId: _response.remoteId,
       characteristicUuid: _response.characteristicUuid,
+      characteristicInstanceId: _response.characteristicInstanceId,
       serviceUuid: _response.serviceUuid,
-      secondaryServiceUuid: _response.secondaryServiceUuid);
+      serviceInstanceId: _response.serviceInstanceId,
+      secondaryServiceUuid: _response.secondaryServiceUuid,
+      secondaryServiceInstanceId: _response.secondaryServiceInstanceId);
 
   /// the new data
   List<int> get value => _response.value;
@@ -231,7 +237,9 @@ class OnDescriptorReadEvent {
   BluetoothDescriptor get descriptor => BluetoothDescriptor(
       remoteId: _response.remoteId,
       serviceUuid: _response.serviceUuid,
+      serviceInstanceId: _response.serviceInstanceId,
       characteristicUuid: _response.characteristicUuid,
+      characteristicInstanceId: _response.characteristicInstanceId,
       descriptorUuid: _response.descriptorUuid);
 
   /// the new data
@@ -254,7 +262,9 @@ class OnDescriptorWrittenEvent {
   BluetoothDescriptor get descriptor => BluetoothDescriptor(
       remoteId: _response.remoteId,
       serviceUuid: _response.serviceUuid,
+      serviceInstanceId: _response.serviceInstanceId,
       characteristicUuid: _response.characteristicUuid,
+      characteristicInstanceId: _response.characteristicInstanceId,
       descriptorUuid: _response.descriptorUuid);
 
   /// the new data
