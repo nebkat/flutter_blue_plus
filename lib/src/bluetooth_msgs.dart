@@ -348,6 +348,8 @@ class BmBluetoothDescriptor {
   final DeviceIdentifier remoteId;
   final Guid serviceUuid;
   final int serviceIndex;
+  final Guid? secondaryServiceUuid;
+  final int? secondaryServiceIndex;
   final Guid characteristicUuid;
   final int characteristicIndex;
   final Guid descriptorUuid;
@@ -356,6 +358,8 @@ class BmBluetoothDescriptor {
     required this.remoteId,
     required this.serviceUuid,
     required this.serviceIndex,
+    required this.secondaryServiceUuid,
+    required this.secondaryServiceIndex,
     required this.characteristicUuid,
     required this.characteristicIndex,
     required this.descriptorUuid,
@@ -366,6 +370,8 @@ class BmBluetoothDescriptor {
       remoteId: DeviceIdentifier(json['remote_id']),
       serviceUuid: Guid(json['service_uuid']),
       serviceIndex: json['service_index'],
+      secondaryServiceUuid: json['secondary_service_uuid'] != null ? Guid(json['secondary_service_uuid']) : null,
+      secondaryServiceIndex: json['secondary_service_index'],
       characteristicUuid: Guid(json['characteristic_uuid']),
       characteristicIndex: json['characteristic_index'],
       descriptorUuid: Guid(json['descriptor_uuid']),

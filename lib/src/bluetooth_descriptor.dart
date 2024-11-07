@@ -8,6 +8,8 @@ class BluetoothDescriptor {
   final DeviceIdentifier remoteId;
   final Guid serviceUuid;
   final int serviceIndex;
+  final Guid? secondaryServiceUuid;
+  final int? secondaryServiceIndex;
   final Guid characteristicUuid;
   final int characteristicIndex;
   final Guid descriptorUuid;
@@ -16,6 +18,8 @@ class BluetoothDescriptor {
     required this.remoteId,
     required this.serviceUuid,
     this.serviceIndex = 0,
+    this.secondaryServiceUuid,
+    this.secondaryServiceIndex,
     required this.characteristicUuid,
     this.characteristicIndex = 0,
     required this.descriptorUuid,
@@ -25,6 +29,8 @@ class BluetoothDescriptor {
       : remoteId = p.remoteId,
         serviceUuid = p.serviceUuid,
         serviceIndex = p.serviceIndex,
+        secondaryServiceUuid = p.secondaryServiceUuid,
+        secondaryServiceIndex = p.secondaryServiceIndex,
         characteristicUuid = p.characteristicUuid,
         characteristicIndex = p.characteristicIndex,
         descriptorUuid = p.descriptorUuid;

@@ -2651,7 +2651,18 @@ public class FlutterBluePlusPlugin implements
 
         List<Object> descriptors = new ArrayList<Object>();
         for(BluetoothGattDescriptor d : characteristic.getDescriptors()) {
-            descriptors.add(bmBluetoothDescriptor(device, d));
+            HashMap<String, Object> map = new HashMap<>();
+            map.put("remote_id", device.getAddress());
+            map.put("descriptor_uuid", uuidStr(d.getUuid()));
+            map.put("characteristic_uuid", uuidStr(d.getCharacteristic().getUuid()));
+            map.put("characteristic_index", d.getCharacteristic().getInstanceId());
+            map.put("service_uuid", uuidStr(pair.primary.getUuid()));
+            map.put("service_index", pair.primary.getInstanceId());
+            if (pair.secondary != null) {
+                map.put("secondary_service_uuid", uuidStr(pair.secondary.getUuid()));
+                map.put("secondary_service_index", pair.secondary.getInstanceId());
+            }
+            descriptors.add(map);
         }
 
         // See: BmBluetoothCharacteristic
@@ -2667,18 +2678,6 @@ public class FlutterBluePlusPlugin implements
         map.put("characteristic_index", characteristic.getInstanceId());
         map.put("descriptors", descriptors);
         map.put("properties", bmCharacteristicProperties(characteristic.getProperties()));
-        return map;
-    }
-
-    // See: BmBluetoothDescriptor
-    HashMap<String, Object> bmBluetoothDescriptor(BluetoothDevice device, BluetoothGattDescriptor descriptor) {
-        HashMap<String, Object> map = new HashMap<>();
-        map.put("remote_id", device.getAddress());
-        map.put("descriptor_uuid", uuidStr(descriptor.getUuid()));
-        map.put("characteristic_uuid", uuidStr(descriptor.getCharacteristic().getUuid()));
-        map.put("characteristic_index", descriptor.getCharacteristic().getInstanceId());
-        map.put("service_uuid", uuidStr(descriptor.getCharacteristic().getService().getUuid()));
-        map.put("service_index", descriptor.getCharacteristic().getService().getInstanceId());
         return map;
     }
 
