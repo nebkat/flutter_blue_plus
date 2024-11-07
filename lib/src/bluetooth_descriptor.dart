@@ -15,9 +15,9 @@ class BluetoothDescriptor {
   BluetoothDescriptor({
     required this.remoteId,
     required this.serviceUuid,
-    required this.serviceIndex,
+    this.serviceIndex = 0,
     required this.characteristicUuid,
-    required this.characteristicIndex,
+    this.characteristicIndex = 0,
     required this.descriptorUuid,
   });
 

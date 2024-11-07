@@ -18,11 +18,11 @@ class BluetoothCharacteristic {
   BluetoothCharacteristic({
     required this.remoteId,
     required this.serviceUuid,
-    required this.serviceIndex,
+    this.serviceIndex = 0,
     this.secondaryServiceUuid,
     this.secondaryServiceIndex,
     required this.characteristicUuid,
-    required this.characteristicIndex,
+    this.characteristicIndex = 0,
   });
 
   BluetoothCharacteristic.fromProto(BmBluetoothCharacteristic p)
