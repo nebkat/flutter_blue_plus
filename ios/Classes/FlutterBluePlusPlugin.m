@@ -11,6 +11,8 @@ NSString * const CCCD = @"2902";
 @interface ServicePair : NSObject
 @property (strong, nonatomic) CBService *primary;
 @property (strong, nonatomic) CBService *secondary;
+@property (strong, nonatomic) NSUInteger primaryIndex;
+@property (strong, nonatomic) NSUInteger secondaryIndex;
 @end
 
 @implementation ServicePair
@@ -919,26 +921,27 @@ typedef NS_ENUM(NSUInteger, LogLevel) {
 
 - (CBService *)getServiceFromArray:(NSString *)uuid index:(NSUInteger *)index array:(NSArray<CBService *> *)array
 {
-    for (CBService *s in array)
+    if (index >= array.count) return nil;
+    CBService *s = [array objectAtIndex:index];
+
+    if ([s.UUID isEqual:[CBUUID UUIDWithString:uuid]])
     {
-        // Use hash as index
-        if ([s.UUID isEqual:[CBUUID UUIDWithString:uuid]] && s.hash == index)
-        {
-            return s;
-        }
+        return s;
     }
+
     return nil;
 }
 
 - (CBCharacteristic *)getCharacteristicFromArray:(NSString *)uuid index:(NSUInteger *)index array:(NSArray<CBCharacteristic *> *)array
 {
-    for (CBCharacteristic *c in array)
+    if (index >= array.count) return nil;
+    CBCharacteristic *c = [array objectAtIndex:index];
+
+    if ([c.UUID isEqual:[CBUUID UUIDWithString:uuid]])
     {
-        if ([c.UUID isEqual:[CBUUID UUIDWithString:uuid]] && c.hash == index)
-        {
-            return c;
-        }
+        return c;
     }
+
     return nil;
 }
 
@@ -1415,7 +1418,7 @@ typedef NS_ENUM(NSUInteger, LogLevel) {
     NSMutableArray *services = [NSMutableArray new];
     for (CBService *s in [peripheral services])
     {
-        [services addObject:[self bmBluetoothService:peripheral service:s]];
+        [services addObject:[self bmBluetoothService:peripheral service:s parent:nil]];
     }
 
     // See BmDiscoverServicesResult
@@ -1471,11 +1474,11 @@ typedef NS_ENUM(NSUInteger, LogLevel) {
     NSDictionary* result = @{
         @"remote_id":               [peripheral.identifier UUIDString],
         @"service_uuid":            [pair.primary.UUID uuidStr],
-        @"service_index":           pair.primary.hash,
+        @"service_index":           pair.primaryIndex,
         @"secondary_service_uuid":  pair.secondary ? [pair.secondary.UUID uuidStr] : [NSNull null],
-        @"secondary_service_index": pair.secondary ? pair.secondary.hash : [NSNull null],
+        @"secondary_service_index": pair.secondary ? pair.secondaryIndex : [NSNull null],
         @"characteristic_uuid":     [characteristic.UUID uuidStr],
-        @"characteristic_index":    characteristic.hash,
+        @"characteristic_index":    [characteristic.service.characteristics indexOfObject:characteristic],
         @"value":                   [self convertDataToHex:characteristic.value],
         @"success":                 error == nil ? @(1) : @(0),
         @"error_string":            error ? [error localizedDescription] : @"success",
@@ -1516,11 +1519,11 @@ typedef NS_ENUM(NSUInteger, LogLevel) {
     NSDictionary* result = @{
         @"remote_id":               remoteId,
         @"service_uuid":            serviceUuid,
-        @"service_index":           pair.primary.hash,
+        @"service_index":           pair.primaryIndex,
         @"secondary_service_uuid":  pair.secondary ? secondaryServiceUuid : [NSNull null],
-        @"secondary_service_index": pair.secondary ? pair.secondary.hash : [NSNull null],
+        @"secondary_service_index": pair.secondary ? pair.secondaryIndex : [NSNull null],
         @"characteristic_uuid":     characteristicUuid,
-        @"characteristic_index":    characteristic.hash,
+        @"characteristic_index":    [characteristic.service.characteristics indexOfObject:characteristic],
         @"value":                   value,
         @"success":                 @(error == nil),
         @"error_string":            error ? [error localizedDescription] : @"success",
@@ -1562,11 +1565,11 @@ typedef NS_ENUM(NSUInteger, LogLevel) {
     NSDictionary* result = @{
         @"remote_id":              [peripheral.identifier UUIDString],
         @"service_uuid":           [pair.primary.UUID uuidStr],
-        @"service_index":          pair.primary.hash,
+        @"service_index":          pair.primaryIndex,
         @"secondary_service_uuid": pair.secondary ? [pair.secondary.UUID uuidStr] : [NSNull null],
-        @"secondary_service_index": pair.secondary ? pair.secondary.hash : [NSNull null],
+        @"secondary_service_index": pair.secondary ? pair.secondaryIndex : [NSNull null],
         @"characteristic_uuid":    [characteristic.UUID uuidStr],
-        @"characteristic_index":   characteristic.hash,
+        @"characteristic_index":   [characteristic.service.characteristics indexOfObject:characteristic],
         @"descriptor_uuid":        CCCD,
         @"value":                  [self convertDataToHex:[NSData dataWithBytes:&value length:sizeof(value)]],
         @"success":                @(error == nil),
@@ -1600,11 +1603,11 @@ typedef NS_ENUM(NSUInteger, LogLevel) {
     NSDictionary* result = @{
         @"remote_id":              [peripheral.identifier UUIDString],
         @"service_uuid":           [pair.primary.UUID uuidStr],
-        @"service_index":          pair.primary.hash,
+        @"service_index":          pair.primaryIndex,
         @"secondary_service_uuid": pair.secondary ? [pair.secondary.UUID uuidStr] : [NSNull null],
-        @"secondary_service_index": pair.secondary ? pair.secondary.hash : [NSNull null],
+        @"secondary_service_index": pair.secondary ? pair.secondaryIndex : [NSNull null],
         @"characteristic_uuid":    [descriptor.characteristic.UUID uuidStr],
-        @"characteristic_index":   descriptor.characteristic.hash,
+        @"characteristic_index":   [descriptor.characteristic.service.characteristics indexOfObject:descriptor.characteristic],
         @"descriptor_uuid":        [descriptor.UUID uuidStr],
         @"value":                  [self convertDataToHex:data],
         @"success":                @(error == nil),
@@ -1648,11 +1651,11 @@ typedef NS_ENUM(NSUInteger, LogLevel) {
     NSDictionary* result = @{
         @"remote_id":              remoteId,
         @"service_uuid":           serviceUuid,
-        @"service_index":          pair.primary.hash,
+        @"service_index":          pair.primaryIndex,
         @"secondary_service_uuid": pair.secondary ? secondaryServiceUuid : [NSNull null],
-        @"secondary_service_index": pair.secondary ? pair.secondary.hash : [NSNull null],
+        @"secondary_service_index": pair.secondary ? pair.secondaryIndex : [NSNull null],
         @"characteristic_uuid":    characteristicUuid,
-        @"characteristic_index":   descriptor.characteristic.hash,
+        @"characteristic_index":   [descriptor.characteristic.service.characteristics indexOfObject:descriptor.characteristic],
         @"descriptor_uuid":        descriptorUuid,
         @"value":                  value,
         @"success":                @(error == nil),
@@ -1752,11 +1755,11 @@ typedef NS_ENUM(NSUInteger, LogLevel) {
     NSDictionary* result = @{
         @"remote_id":               [peripheral.identifier UUIDString],
         @"service_uuid":            [pair.primary.UUID uuidStr],
-        @"service_index":           pair.primary.hash,
+        @"service_index":           pair.primaryIndex,
         @"secondary_service_uuid":  pair.secondary ? [pair.secondary.UUID uuidStr] : [NSNull null],
-        @"secondary_service_index": pair.secondary ? pair.secondary.hash : [NSNull null],
+        @"secondary_service_index": pair.secondary ? pair.secondaryIndex : [NSNull null],
         @"characteristic_uuid":     [characteristic.UUID uuidStr],
-        @"characteristic_index":    characteristic.hash,
+        @"characteristic_index":    [characteristic.service.characteristics indexOfObject:characteristic],
         @"value":                   value,
         @"success":                 @(error == nil),
         @"error_string":            error ? [error localizedDescription] : @"success",
@@ -1885,7 +1888,7 @@ typedef NS_ENUM(NSUInteger, LogLevel) {
     }
 }
 
-- (NSDictionary *)bmBluetoothService:(CBPeripheral *)peripheral service:(CBService *)service
+- (NSDictionary *)bmBluetoothService:(CBPeripheral *)peripheral service:(CBService *)service parentService:(CBService *)parentService
 {
     // Characteristics
     NSMutableArray *characteristicProtos = [NSMutableArray new];
@@ -1902,14 +1905,14 @@ typedef NS_ENUM(NSUInteger, LogLevel) {
         if ([included.UUID isEqual:service.UUID]) {
             continue; // skip, infinite recursion
         }
-        [includedServicesProtos addObject:[self bmBluetoothService:peripheral service:included]];
+        [includedServicesProtos addObject:[self bmBluetoothService:peripheral service:included parentService:service]];
     }
 
     // See BmBluetoothService
     return @{
         @"remote_id":           [peripheral.identifier UUIDString],
         @"service_uuid":        [service.UUID uuidStr],
-        @"service_index": service.hash,
+        @"service_index":       [(parentService ? parentService.includedServices : peripheral.services) indexOfObject:service],
         @"characteristics":     characteristicProtos,
         @"is_primary":          @([service isPrimary]),
         @"included_services":   includedServicesProtos,
@@ -1929,11 +1932,11 @@ typedef NS_ENUM(NSUInteger, LogLevel) {
         NSDictionary* desc = @{
             @"remote_id":              [peripheral.identifier UUIDString],
             @"service_uuid":           [pair.primary.UUID uuidStr],
-            @"service_index":          pair.primary.hash,
+            @"service_index":          pair.primaryIndex,
             @"secondary_service_uuid": pair.secondary ? [pair.secondary.UUID uuidStr] : [NSNull null],
-            @"secondary_service_index": pair.secondary ? pair.secondary.hash : [NSNull null],
-            @"characteristic_uuid":    [d.characteristic.UUID uuidStr],
-            @"characteristic_index":   d.characteristic.hash,
+            @"secondary_service_index": pair.secondary ? pair.secondaryIndex : [NSNull null],
+            @"characteristic_uuid":    [characteristic.UUID uuidStr],
+            @"characteristic_index":   [characteristic.service.characteristics indexOfObject:characteristic],
             @"descriptor_uuid":        [d.UUID uuidStr],
         };
 
@@ -1960,11 +1963,11 @@ typedef NS_ENUM(NSUInteger, LogLevel) {
     return @{
         @"remote_id":              [peripheral.identifier UUIDString],
         @"service_uuid":           [pair.primary.UUID uuidStr],
-        @"service_index":          pair.primary.hash,
+        @"service_index":          pair.primaryIndex,
         @"secondary_service_uuid": pair.secondary ? [pair.secondary.UUID uuidStr] : [NSNull null],
-        @"secondary_service_index": pair.secondary ? pair.secondary.hash : [NSNull null],
+        @"secondary_service_index": pair.secondary ? pair.secondaryIndex : [NSNull null],
         @"characteristic_uuid":    [characteristic.UUID uuidStr],
-        @"characteristic_index":   characteristic.hash,
+        @"characteristic_index":   [characteristic.service.characteristics indexOfObject:characteristic],
         @"descriptors":            descriptors,
         @"properties":             propsMap,
     };
@@ -2234,21 +2237,26 @@ typedef NS_ENUM(NSUInteger, LogLevel) {
     // is this a primary service?
     if ([service isPrimary]) {
         result.primary = service;
+        result.primaryIndex = [peripheral.services indexOfObject:service];
         result.secondary = NULL;
+        result.secondaryIndex = -1;
         return result;
     } 
 
-    // Otherwise, iterate all services until we find the primary service
-    for (CBService *primary in [peripheral services])
+    // Iterate primary services until one contains the secondary service
+    for (int serviceIndex = 0; serviceIndex < peripheral.services.count; serviceIndex++)
     {
-        for (CBService *secondary in [primary includedServices])
-        {
-            if ([secondary.UUID isEqual:service.UUID])
-            {
-                result.primary = primary;
-                result.secondary = secondary;
-                return result;
-            }
+        CBService *primary = [peripheral services][serviceIndex];
+        // check if this primary service includes the secondary service
+        if ([primary includedServices] == nil) {
+            continue;
+        }
+        if ([primary.includedServices containsObject:service]) {
+            result.primary = primary;
+            result.primaryIndex = serviceIndex;
+            result.secondary = service;
+            result.secondaryIndex = [primary.includedServices indexOfObject:service];
+            return result;
         }
     }
 
