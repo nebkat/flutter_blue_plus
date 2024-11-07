@@ -9,30 +9,30 @@ final Guid cccdUuid = Guid("00002902-0000-1000-8000-00805f9b34fb");
 class BluetoothCharacteristic {
   final DeviceIdentifier remoteId;
   final Guid serviceUuid;
-  final int serviceInstanceId;
+  final int serviceIndex;
   final Guid? secondaryServiceUuid;
-  final int? secondaryServiceInstanceId;
+  final int? secondaryServiceIndex;
   final Guid characteristicUuid;
-  final int characteristicInstanceId;
+  final int characteristicIndex;
 
   BluetoothCharacteristic({
     required this.remoteId,
     required this.serviceUuid,
-    required this.serviceInstanceId,
+    required this.serviceIndex,
     this.secondaryServiceUuid,
-    this.secondaryServiceInstanceId,
+    this.secondaryServiceIndex,
     required this.characteristicUuid,
-    required this.characteristicInstanceId,
+    required this.characteristicIndex,
   });
 
   BluetoothCharacteristic.fromProto(BmBluetoothCharacteristic p)
       : remoteId = p.remoteId,
         serviceUuid = p.serviceUuid,
-        serviceInstanceId = p.serviceInstanceId,
+        serviceIndex = p.serviceIndex,
         secondaryServiceUuid = p.secondaryServiceUuid,
-        secondaryServiceInstanceId = p.secondaryServiceInstanceId,
+        secondaryServiceIndex = p.secondaryServiceIndex,
         characteristicUuid = p.characteristicUuid,
-        characteristicInstanceId = p.characteristicInstanceId;
+        characteristicIndex = p.characteristicIndex;
 
   /// convenience accessor
   Guid get uuid => characteristicUuid;
@@ -120,11 +120,11 @@ class BluetoothCharacteristic {
       var request = BmReadCharacteristicRequest(
         remoteId: remoteId,
         characteristicUuid: characteristicUuid,
-        characteristicInstanceId: characteristicInstanceId,
+        characteristicIndex: characteristicIndex,
         serviceUuid: serviceUuid,
-        serviceInstanceId: serviceInstanceId,
+        serviceIndex: serviceIndex,
         secondaryServiceUuid: secondaryServiceUuid,
-        secondaryServiceInstanceId: secondaryServiceInstanceId,
+        secondaryServiceIndex: secondaryServiceIndex,
       );
 
       var responseStream = FlutterBluePlus._methodStream.stream
@@ -194,11 +194,11 @@ class BluetoothCharacteristic {
       var request = BmWriteCharacteristicRequest(
         remoteId: remoteId,
         characteristicUuid: characteristicUuid,
-        characteristicInstanceId: characteristicInstanceId,
+        characteristicIndex: characteristicIndex,
         serviceUuid: serviceUuid,
-        serviceInstanceId: serviceInstanceId,
+        serviceIndex: serviceIndex,
         secondaryServiceUuid: secondaryServiceUuid,
-        secondaryServiceInstanceId: secondaryServiceInstanceId,
+        secondaryServiceIndex: secondaryServiceIndex,
         writeType: writeType,
         allowLongWrite: allowLongWrite,
         value: value,
@@ -261,11 +261,11 @@ class BluetoothCharacteristic {
       var request = BmSetNotifyValueRequest(
         remoteId: remoteId,
         serviceUuid: serviceUuid,
-        serviceInstanceId: serviceInstanceId,
+        serviceIndex: serviceIndex,
         secondaryServiceUuid: secondaryServiceUuid,
-        secondaryServiceInstanceId: secondaryServiceInstanceId,
+        secondaryServiceIndex: secondaryServiceIndex,
         characteristicUuid: characteristicUuid,
-        characteristicInstanceId: characteristicInstanceId,
+        characteristicIndex: characteristicIndex,
         forceIndications: forceIndications,
         enable: notify,
       );
@@ -310,11 +310,11 @@ class BluetoothCharacteristic {
   BmBluetoothService? get _bmsvc {
     if (FlutterBluePlus._knownServices[remoteId] != null) {
       for (var s in FlutterBluePlus._knownServices[remoteId]!.services) {
-        if (s.serviceUuid == serviceUuid && s.serviceInstanceId == serviceInstanceId) {
+        if (s.serviceUuid == serviceUuid && s.serviceIndex == serviceIndex) {
           if (secondaryServiceUuid != null) {
             // search includedServices (i.e. secondary services)
             for (var s2 in s.includedServices) {
-              if (s2.serviceUuid == secondaryServiceUuid && s2.serviceInstanceId == secondaryServiceInstanceId) {
+              if (s2.serviceUuid == secondaryServiceUuid && s2.serviceIndex == secondaryServiceIndex) {
                 return s2;
               }
             }
@@ -331,7 +331,7 @@ class BluetoothCharacteristic {
   BmBluetoothCharacteristic? get _bmchr {
     if (_bmsvc != null) {
       for (var c in _bmsvc!.characteristics) {
-        if (c.characteristicUuid == uuid && c.characteristicInstanceId == characteristicInstanceId) {
+        if (c.characteristicUuid == uuid && c.characteristicIndex == characteristicIndex) {
           return c;
         }
       }

@@ -7,26 +7,26 @@ part of flutter_blue_plus;
 class BluetoothDescriptor {
   final DeviceIdentifier remoteId;
   final Guid serviceUuid;
-  final int serviceInstanceId;
+  final int serviceIndex;
   final Guid characteristicUuid;
-  final int characteristicInstanceId;
+  final int characteristicIndex;
   final Guid descriptorUuid;
 
   BluetoothDescriptor({
     required this.remoteId,
     required this.serviceUuid,
-    required this.serviceInstanceId,
+    required this.serviceIndex,
     required this.characteristicUuid,
-    required this.characteristicInstanceId,
+    required this.characteristicIndex,
     required this.descriptorUuid,
   });
 
   BluetoothDescriptor.fromProto(BmBluetoothDescriptor p)
       : remoteId = p.remoteId,
         serviceUuid = p.serviceUuid,
-        serviceInstanceId = p.serviceInstanceId,
+        serviceIndex = p.serviceIndex,
         characteristicUuid = p.characteristicUuid,
-        characteristicInstanceId = p.characteristicInstanceId,
+        characteristicIndex = p.characteristicIndex,
         descriptorUuid = p.descriptorUuid;
 
   /// convenience accessor
@@ -92,11 +92,11 @@ class BluetoothDescriptor {
       var request = BmReadDescriptorRequest(
         remoteId: remoteId,
         serviceUuid: serviceUuid,
-        serviceInstanceId: serviceInstanceId,
+        serviceIndex: serviceIndex,
         secondaryServiceUuid: null,
-        secondaryServiceInstanceId: null,
+        secondaryServiceIndex: null,
         characteristicUuid: characteristicUuid,
-        characteristicInstanceId: characteristicInstanceId,
+        characteristicIndex: characteristicIndex,
         descriptorUuid: descriptorUuid,
       );
 
@@ -150,11 +150,11 @@ class BluetoothDescriptor {
       var request = BmWriteDescriptorRequest(
         remoteId: remoteId,
         serviceUuid: serviceUuid,
-        serviceInstanceId: serviceInstanceId,
+        serviceIndex: serviceIndex,
         secondaryServiceUuid: null,
-        secondaryServiceInstanceId: null,
+        secondaryServiceIndex: null,
         characteristicUuid: characteristicUuid,
-        characteristicInstanceId: characteristicInstanceId,
+        characteristicIndex: characteristicIndex,
         descriptorUuid: descriptorUuid,
         value: value,
       );
