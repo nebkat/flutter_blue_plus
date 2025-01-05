@@ -33,7 +33,7 @@ class BluetoothEvents {
 class FbpError {
   final int errorCode;
   final String errorString;
-  ErrorPlatform get platform => _nativeError;
+  ErrorPlatform get platform => ErrorPlatform.native;
   FbpError(this.errorCode, this.errorString);
 }
 
@@ -44,7 +44,7 @@ mixin GetDeviceMixin {
   dynamic get _response;
 
   /// the relevant device
-  BluetoothDevice get device => FlutterBluePlus._deviceForId(_response.remoteId);
+  BluetoothDevice get device => FlutterBluePlus._deviceForAddress(_response.remoteId);
 }
 
 mixin GetAttributeValueMixin {
@@ -78,7 +78,7 @@ mixin GetExceptionMixin {
 
   FlutterBluePlusException? exception(String method) => _response.success
       ? null
-      : FlutterBluePlusException(_nativeError, method, _response.errorCode, _response.errorString);
+      : FlutterBluePlusException(ErrorPlatform.native, method, _response.errorCode, _response.errorString);
 
   void ensureSuccess(String method) {
     if (!_response.success) {
@@ -103,6 +103,7 @@ class OnTurnOnResponseEvent {
   final BmTurnOnResponse _response;
 
   OnTurnOnResponseEvent(this._response);
+  OnTurnOnResponseEvent.fromMap(Map<String, dynamic> map) : _response = BmTurnOnResponse.fromMap(map);
 
   /// user accepted response
   bool get userAccepted => _response.userAccepted;
@@ -115,6 +116,7 @@ class OnScanResponseEvent with GetExceptionMixin {
   final BmScanResponse _response;
 
   OnScanResponseEvent(this._response);
+  OnScanResponseEvent.fromMap(Map<String, dynamic> map) : _response = BmScanResponse.fromMap(map);
 
   /// the new scan state
   List<ScanResult> get advertisements => _response.advertisements.map((a) => ScanResult.fromProto(a)).toList();
@@ -127,13 +129,14 @@ class OnConnectionStateChangedEvent with GetDeviceMixin {
   final BmConnectionStateResponse _response;
 
   OnConnectionStateChangedEvent(this._response);
+  OnConnectionStateChangedEvent.fromMap(Map<String, dynamic> map) : _response = BmConnectionStateResponse.fromMap(map);
 
   /// the new connection state
   BluetoothConnectionState get connectionState => _bmToConnectionState(_response.connectionState);
 
   /// the disconnect reason
   DisconnectReason? get disconnectReason =>
-      DisconnectReason(_nativeError, _response.disconnectReasonCode, _response.disconnectReasonString);
+      DisconnectReason(ErrorPlatform.native, _response.disconnectReasonCode, _response.disconnectReasonString);
 }
 
 // On Adapter State Changed
@@ -143,6 +146,7 @@ class OnAdapterStateChangedEvent {
   final BmBluetoothAdapterState _response;
 
   OnAdapterStateChangedEvent(this._response);
+  OnAdapterStateChangedEvent.fromMap(Map<String, dynamic> map) : _response = BmBluetoothAdapterState.fromMap(map);
 
   /// the new adapter state
   BluetoothAdapterState get adapterState => _bmToAdapterState(_response.adapterState);
@@ -155,6 +159,7 @@ class OnMtuChangedEvent with GetDeviceMixin, GetExceptionMixin {
   final BmMtuChangedResponse _response;
 
   OnMtuChangedEvent(this._response);
+  OnMtuChangedEvent.fromMap(Map<String, dynamic> map) : _response = BmMtuChangedResponse.fromMap(map);
 
   /// the new mtu
   int get mtu => _response.mtu;
@@ -167,6 +172,7 @@ class OnReadRssiEvent with GetDeviceMixin, GetExceptionMixin {
   final BmReadRssiResult _response;
 
   OnReadRssiEvent(this._response);
+  OnReadRssiEvent.fromMap(Map<String, dynamic> map) : _response = BmReadRssiResult.fromMap(map);
 
   /// rssi
   int get rssi => _response.rssi;
@@ -179,6 +185,7 @@ class OnServicesResetEvent with GetDeviceMixin {
   final BmBluetoothDevice _response;
 
   OnServicesResetEvent(this._response);
+  OnServicesResetEvent.fromMap(Map<String, dynamic> map) : _response = BmBluetoothDevice.fromMap(map);
 }
 
 // On Discovered Services
@@ -188,6 +195,7 @@ class OnDiscoveredServicesEvent with GetDeviceMixin, GetExceptionMixin {
   final BmDiscoverServicesResult _response;
 
   OnDiscoveredServicesEvent(this._response);
+  OnDiscoveredServicesEvent.fromMap(Map<String, dynamic> map) : _response = BmDiscoverServicesResult.fromMap(map);
 
   /// the new services
   List<BluetoothService> _constructServices() {
@@ -203,7 +211,7 @@ class OnDiscoveredServicesEvent with GetDeviceMixin, GetExceptionMixin {
       final service = entry.key;
       final includedServices = entry.value;
       service.includedServices = includedServices.map((uuid) {
-        final includedService = services._firstWhereOrNull((s) => s.identifier == uuid);
+        final includedService = services.where((s) => s.identifier == uuid).firstOrNull;
         if (includedService == null) {
           throw FlutterBluePlusException(
               ErrorPlatform.fbp, method, FbpErrorCode.serviceNotFound.index, "service not found: $uuid");
@@ -224,6 +232,7 @@ class OnCharacteristicReceivedEvent
   final BmCharacteristicData _response;
 
   OnCharacteristicReceivedEvent(this._response);
+  OnCharacteristicReceivedEvent.fromMap(Map<String, dynamic> map) : _response = BmCharacteristicData.fromMap(map);
 }
 
 // On Characteristic Written
@@ -234,6 +243,7 @@ class OnCharacteristicWrittenEvent
   final BmCharacteristicData _response;
 
   OnCharacteristicWrittenEvent(this._response);
+  OnCharacteristicWrittenEvent.fromMap(Map<String, dynamic> map) : _response = BmCharacteristicData.fromMap(map);
 }
 
 // On Descriptor Received
@@ -243,6 +253,7 @@ class OnDescriptorReadEvent with GetDeviceMixin, GetAttributeValueMixin, GetDesc
   final BmDescriptorData _response;
 
   OnDescriptorReadEvent(this._response);
+  OnDescriptorReadEvent.fromMap(Map<String, dynamic> map) : _response = BmDescriptorData.fromMap(map);
 }
 
 // On Descriptor Written
@@ -252,6 +263,7 @@ class OnDescriptorWrittenEvent with GetDeviceMixin, GetAttributeValueMixin, GetD
   final BmDescriptorData _response;
 
   OnDescriptorWrittenEvent(this._response);
+  OnDescriptorWrittenEvent.fromMap(Map<String, dynamic> map) : _response = BmDescriptorData.fromMap(map);
 }
 
 // On Name Changed
@@ -261,6 +273,7 @@ class OnNameChangedEvent with GetDeviceMixin {
   final BmNameChanged _response; // TODO: Used to be BmBluetoothDevice??
 
   OnNameChangedEvent(this._response);
+  OnNameChangedEvent.fromMap(Map<String, dynamic> map) : _response = BmNameChanged.fromMap(map);
 
   /// the new name
   String? get name => _response.name; // TODO: Used to be BmBluetoothDevice??
@@ -273,6 +286,7 @@ class OnBondStateChangedEvent with GetDeviceMixin {
   final BmBondStateResponse _response;
 
   OnBondStateChangedEvent(this._response);
+  OnBondStateChangedEvent.fromMap(Map<String, dynamic> map) : _response = BmBondStateResponse.fromMap(map);
 
   /// the new bond state
   BluetoothBondState get bondState => _bmToBondState(_response.bondState);

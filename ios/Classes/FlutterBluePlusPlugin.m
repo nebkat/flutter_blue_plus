@@ -1436,12 +1436,16 @@ typedef NS_ENUM(NSUInteger, LogLevel) {
 
     NSString* remoteId = [[peripheral identifier] UUIDString];
     NSMutableSet *services = [self.peripheralServices objectForKey:remoteId];
-    [services addObjectsFromArray:service.includedServices];
 
-    [self.servicesToDiscover addObjectsFromArray:service.includedServices];
     for (CBService *s in service.includedServices)
     {
         Log(LDEBUG, @"    svc: %@", [s.UUID uuidStr]);
+
+        // Don't try to discover services we already know about
+        if ([services containsObject:s]) continue;
+
+        [services addObject:s];
+        [self.servicesToDiscover addObject:s];
         [peripheral discoverCharacteristics:nil forService:s];
         [peripheral discoverIncludedServices:nil forService:s];
     }
@@ -1539,9 +1543,7 @@ typedef NS_ENUM(NSUInteger, LogLevel) {
     CBDescriptor *descriptor = [self getDescriptorFromArray:CCCD array:[characteristic descriptors]];
     if (descriptor == nil) {
         Log(LWARNING, @"Warning: CCCD descriptor for characteristic not found: %@", [characteristic.UUID uuidStr]);
-    }
-
-    if (descriptor != nil) {
+    } else {
         // See BmDescriptorData
         NSDictionary *result = @{
                 @"remote_id": [peripheral.identifier UUIDString],

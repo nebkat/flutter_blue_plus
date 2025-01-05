@@ -27,32 +27,6 @@ List<int> _hexDecode(String hex) {
   return numbers;
 }
 
-int _compareAsciiLowerCase(String a, String b) {
-  const int upperCaseA = 0x41;
-  const int upperCaseZ = 0x5a;
-  const int asciiCaseBit = 0x20;
-  var defaultResult = 0;
-  for (var i = 0; i < a.length; i++) {
-    if (i >= b.length) return 1;
-    var aChar = a.codeUnitAt(i);
-    var bChar = b.codeUnitAt(i);
-    if (aChar == bChar) continue;
-    var aLowerCase = aChar;
-    var bLowerCase = bChar;
-    // Upper case if ASCII letters.
-    if (upperCaseA <= bChar && bChar <= upperCaseZ) {
-      bLowerCase += asciiCaseBit;
-    }
-    if (upperCaseA <= aChar && aChar <= upperCaseZ) {
-      aLowerCase += asciiCaseBit;
-    }
-    if (aLowerCase != bLowerCase) return (aLowerCase - bLowerCase).sign;
-    if (defaultResult == 0) defaultResult = aChar - bChar;
-  }
-  if (b.length > a.length) return -1;
-  return defaultResult.sign;
-}
-
 extension AddOrUpdate<T> on List<T> {
   /// add an item to a list, or update item if it already exists
   void addOrUpdate(T item) {
@@ -250,10 +224,9 @@ class _NewStreamWithInitialValueTransformer<T> extends StreamTransformerBase<T, 
   }
 
   Stream<T> _bind(Stream<T> stream, {bool broadcast = false}) {
-
     /////////////////////////////////////////
     /// Original Stream Subscription Callbacks
-    /// 
+    ///
 
     /// When the original stream emits data, forward it to our new stream
     void onData(T data) {
@@ -291,22 +264,22 @@ class _NewStreamWithInitialValueTransformer<T> extends StreamTransformerBase<T, 
 
     //////////////////////////////////////
     ///  New Stream Controller Callbacks
-    /// 
+    ///
 
     /// (Single Subscription Only) When a client pauses
-    /// the new stream, pause the original stream 
+    /// the new stream, pause the original stream
     void onPause() {
       subscription.pause();
     }
 
     /// (Single Subscription Only) When a client resumes
-    /// the new stream, resume the original stream 
+    /// the new stream, resume the original stream
     void onResume() {
       subscription.resume();
     }
 
-    /// Called when a client cancels their 
-    /// subscription to the new stream, 
+    /// Called when a client cancels their
+    /// subscription to the new stream,
     void onCancel() {
       // count listeners of the new stream
       listenerCount--;
@@ -322,7 +295,7 @@ class _NewStreamWithInitialValueTransformer<T> extends StreamTransformerBase<T, 
 
     //////////////////////////////////////
     /// Return New Stream
-    /// 
+    ///
 
     // create a new stream controller
     if (broadcast) {
@@ -390,6 +363,11 @@ Stream<T> _mergeStreams<T>(List<Stream<T>> streams) {
 // dart is single threaded, but still has task switching.
 // this mutex lets a single task through at a time.
 class _Mutex {
+  static final global = _Mutex();
+  static final scan = _Mutex();
+  static final disconnect = _Mutex();
+  static final invokeMethod = _Mutex();
+
   final StreamController _controller = StreamController.broadcast();
   int execute = 0;
   int issued = 0;
@@ -409,14 +387,14 @@ class _Mutex {
     _controller.add(null); // release waiting tasks
     return false;
   }
-}
 
-// Create mutexes in a parallel-safe way,
-class _MutexFactory {
-  static final Map<String, _Mutex> _all = {};
-  static _Mutex getMutexForKey(String key) {
-    _all[key] ??= _Mutex();
-    return _all[key]!;
+  Future<T> protect<T>(FutureOr<T> Function() f) async {
+    await take();
+    try {
+      return f();
+    } finally {
+      give();
+    }
   }
 }
 
@@ -439,18 +417,6 @@ String _magenta(String s) {
 String _brown(String s) {
   // Use ANSI escape codes
   return '\x1B[1;33m$s\x1B[0m';
-}
-
-extension FirstWhereOrNullExtension<T> on Iterable<T> {
-  /// returns first item to satisfy `test`, else null
-  T? _firstWhereOrNull(bool Function(T) test) {
-    for (var element in this) {
-      if (test(element)) {
-        return element;
-      }
-    }
-    return null;
-  }
 }
 
 extension RemoveWhere<T> on List<T> {

@@ -19,9 +19,15 @@ class FlutterBluePlus {
   static final StreamController<dynamic> _methodStream = StreamController.broadcast();
 
   // always keep track of these device variables
-  static final Map<DeviceIdentifier, BluetoothDevice> _devices = {};
+  static final Map<String, BluetoothDevice> _devices = LinkedHashMap<String, BluetoothDevice>(
+    equals: (a, b) => a.toLowerCase() == b.toLowerCase(),
+    hashCode: (a) => a.toLowerCase().hashCode,
+  );
   static final List<StreamSubscription> _scanSubscriptions = [];
-  static final Set<DeviceIdentifier> _autoConnect = {};
+  static final Set<String> _autoConnect = HashSet<String>(
+    equals: (a, b) => a.toLowerCase() == b.toLowerCase(),
+    hashCode: (a) => a.toLowerCase().hashCode,
+  );
 
   /// stream used for the isScanning public api
   static final _isScanning = _StreamControllerReEmit<bool>(initialValue: false);
@@ -156,24 +162,24 @@ class FlutterBluePlus {
   static Future<List<BluetoothDevice>> systemDevices(List<Guid> withServices) async {
     var result = await _invokeMethod('getSystemDevices', {"with_services": withServices.map((s) => s.str).toList()});
     var r = BmDevicesList.fromMap(result);
-    return r.devices.map((d) => FlutterBluePlus._deviceForId(d.remoteId).._platformName = d.platformName).toList();
+    return r.devices.map((d) => FlutterBluePlus._deviceForAddress(d.address).._platformName = d.platformName).toList();
   }
 
   /// Retrieve a list of bonded devices (Android only)
   static Future<List<BluetoothDevice>> get bondedDevices async {
     var result = await _invokeMethod('getBondedDevices');
     var r = BmDevicesList.fromMap(result);
-    return r.devices.map((d) => FlutterBluePlus._deviceForId(d.remoteId).._platformName = d.platformName).toList();
+    return r.devices.map((d) => FlutterBluePlus._deviceForAddress(d.address).._platformName = d.platformName).toList();
   }
 
   /// Start a scan, and return a stream of results
   /// Note: scan filters use an "or" behavior. i.e. if you set `withServices` & `withNames` we
-  /// return all the advertisments that match any of the specified services *or* any of the specified names.
+  /// return all the advertisements that match any of the specified services *or* any of the specified names.
   ///   - [withServices] filter by advertised services
   ///   - [withRemoteIds] filter for known remoteIds (iOS: 128-bit guid, android: 48-bit mac address)
   ///   - [withNames] filter by advertised names (exact match)
   ///   - [withKeywords] filter by advertised names (matches any substring)
-  ///   - [withMsd] filter by manfacture specific data
+  ///   - [withMsd] filter by manufacturer specific data
   ///   - [withServiceData] filter by service data
   ///   - [timeout] calls stopScan after a specified duration
   ///   - [removeIfGone] if true, remove devices after they've stopped advertising for X duration
@@ -183,7 +189,7 @@ class FlutterBluePlus {
   ///        ignored, and one-third are processed. This reduces main-thread usage caused by the platform channel.
   ///        The scan counting is per-device so you always get the 1st advertisement from each device.
   ///        If divisor is 1, all advertisements are returned. This argument only matters for `continuousUpdates` mode.
-  ///   - [oneByOne] if `true`, we will stream every advertistment one by one, possibly including duplicates.
+  ///   - [oneByOne] if `true`, we will stream every advertisement one by one, possibly including duplicates.
   ///        If `false`, we deduplicate the advertisements, and return a list of devices.
   ///   - [androidLegacy] Android only. If `true`, scan on 1M phy only.
   ///        If `false`, scan on all supported phys. How the radio cycles through all the supported phys is purely
@@ -226,9 +232,7 @@ class FlutterBluePlus {
 
     // only allow a single task to call
     // startScan or stopScan at a time
-    _Mutex mtx = _MutexFactory.getMutexForKey("scan");
-    await mtx.take();
-    try {
+    await _Mutex.scan.protect(() async {
       // already scanning?
       if (_isScanning.latestValue == true) {
         // stop existing scan
@@ -290,7 +294,7 @@ class FlutterBluePlus {
           // iterate through advertisements
           for (ScanResult sr in response.advertisements) {
             // cache platform name
-            // TODO CRITICAL if (sr.advertisementData.platformName) {
+            // TODO CRITICAL if (sr.platformName) {
             //   _platformNames[bm.remoteId] = bm.platformName!;
             // }
 
@@ -320,24 +324,18 @@ class FlutterBluePlus {
       if (timeout != null) {
         _scanTimeout = Timer(timeout, stopScan);
       }
-    } finally {
-      mtx.give();
-    }
+    });
   }
 
   /// Stops a scan for Bluetooth Low Energy devices
   static Future<void> stopScan() async {
-    _Mutex mtx = _MutexFactory.getMutexForKey("scan");
-    await mtx.take();
-    try {
+    await _Mutex.scan.protect(() async {
       if (isScanningNow) {
         await _stopScan();
       } else if (_logLevel.index >= LogLevel.info.index) {
         print("[FBP] stopScan: already stopped");
       }
-    } finally {
-      mtx.give();
-    }
+    });
   }
 
   /// for internal use
@@ -380,8 +378,8 @@ class FlutterBluePlus {
     return await _invokeMethod('getPhySupport').then((args) => PhySupport.fromMap(args));
   }
 
-  static BluetoothDevice _deviceForId(DeviceIdentifier id) {
-    return _devices.putIfAbsent(id, () => BluetoothDevice._internal(remoteId: id));
+  static BluetoothDevice _deviceForAddress(String address) {
+    return _devices.putIfAbsent(address, () => BluetoothDevice._internal(remoteId: address));
   }
 
   static Future<dynamic> _initFlutterBluePlus() async {
@@ -410,49 +408,22 @@ class FlutterBluePlus {
     }
   }
 
-  static dynamic _methodCallMap(MethodCall call) {
-    if (call.method == OnDetachedFromEngineEvent.method) {
-      return OnDetachedFromEngineEvent();
-    } else if (call.method == OnDiscoveredServicesEvent.method) {
-      BmDiscoverServicesResult r = BmDiscoverServicesResult.fromMap(call.arguments);
-      return OnDiscoveredServicesEvent(r);
-    } else if (call.method == OnAdapterStateChangedEvent.method) {
-      BmBluetoothAdapterState r = BmBluetoothAdapterState.fromMap(call.arguments);
-      return OnAdapterStateChangedEvent(r);
-    } else if (call.method == OnConnectionStateChangedEvent.method) {
-      BmConnectionStateResponse r = BmConnectionStateResponse.fromMap(call.arguments);
-      return OnConnectionStateChangedEvent(r);
-    } else if (call.method == OnBondStateChangedEvent.method) {
-      BmBondStateResponse r = BmBondStateResponse.fromMap(call.arguments);
-      return OnBondStateChangedEvent(r);
-    } else if (call.method == OnNameChangedEvent.method) {
-      BmNameChanged r = BmNameChanged.fromMap(call.arguments);
-      return OnNameChangedEvent(r);
-    } else if (call.method == OnServicesResetEvent.method) {
-      BmBluetoothDevice r = BmBluetoothDevice.fromMap(call.arguments);
-      return OnServicesResetEvent(r);
-    } else if (call.method == OnMtuChangedEvent.method) {
-      BmMtuChangedResponse r = BmMtuChangedResponse.fromMap(call.arguments);
-      return OnMtuChangedEvent(r);
-    } else if (call.method == OnCharacteristicReceivedEvent.method) {
-      BmCharacteristicData r = BmCharacteristicData.fromMap(call.arguments);
-      return OnCharacteristicReceivedEvent(r);
-    } else if (call.method == OnCharacteristicWrittenEvent.method) {
-      BmCharacteristicData r = BmCharacteristicData.fromMap(call.arguments);
-      return OnCharacteristicWrittenEvent(r);
-    } else if (call.method == OnDescriptorReadEvent.method) {
-      BmDescriptorData r = BmDescriptorData.fromMap(call.arguments);
-      return OnDescriptorReadEvent(r);
-    } else if (call.method == OnDescriptorWrittenEvent.method) {
-      BmDescriptorData r = BmDescriptorData.fromMap(call.arguments);
-      return OnDescriptorWrittenEvent(r);
-    } else if (call.method == OnScanResponseEvent.method) {
-      BmScanResponse r = BmScanResponse.fromMap(call.arguments);
-      return OnScanResponseEvent(r);
-    } else {
-      throw UnimplementedError("methodCallMap: ${call.method}");
-    }
-  }
+  static dynamic _methodCallMap(MethodCall call) => switch (call.method) {
+        OnDetachedFromEngineEvent.method => OnDetachedFromEngineEvent(),
+        OnDiscoveredServicesEvent.method => OnDiscoveredServicesEvent.fromMap(call.arguments),
+        OnAdapterStateChangedEvent.method => OnAdapterStateChangedEvent.fromMap(call.arguments),
+        OnConnectionStateChangedEvent.method => OnConnectionStateChangedEvent.fromMap(call.arguments),
+        OnBondStateChangedEvent.method => OnBondStateChangedEvent.fromMap(call.arguments),
+        OnNameChangedEvent.method => OnNameChangedEvent.fromMap(call.arguments),
+        OnServicesResetEvent.method => OnServicesResetEvent.fromMap(call.arguments),
+        OnMtuChangedEvent.method => OnMtuChangedEvent.fromMap(call.arguments),
+        OnCharacteristicReceivedEvent.method => OnCharacteristicReceivedEvent.fromMap(call.arguments),
+        OnCharacteristicWrittenEvent.method => OnCharacteristicWrittenEvent.fromMap(call.arguments),
+        OnDescriptorReadEvent.method => OnDescriptorReadEvent.fromMap(call.arguments),
+        OnDescriptorWrittenEvent.method => OnDescriptorWrittenEvent.fromMap(call.arguments),
+        OnScanResponseEvent.method => OnScanResponseEvent.fromMap(call.arguments),
+        _ => throw UnimplementedError("methodCallMap: ${call.method}"),
+      };
 
   static Future<dynamic> _methodCallHandler(MethodCall call) async {
     // log result
@@ -485,8 +456,8 @@ class FlutterBluePlus {
         _stopScan(invokePlatform: false);
       }
       if (event.adapterState == BluetoothAdapterState.on) {
-        for (DeviceIdentifier d in _autoConnect) {
-          FlutterBluePlus._deviceForId(d).connect(autoConnect: true, mtu: null).onError((e, s) {
+        for (String address in _autoConnect) {
+          FlutterBluePlus._deviceForAddress(address).connect(autoConnect: true, mtu: null).onError((e, s) {
             if (logLevel != LogLevel.none) {
               print("[FBP] [AutoConnect] connection failed: $e");
             }
@@ -502,7 +473,7 @@ class FlutterBluePlus {
       if (event.connectionState == BluetoothConnectionState.disconnected) {
         // push to mtu stream, if needed
         if (event.device._mtu != null) {
-          var resp = BmMtuChangedResponse(remoteId: event.device.remoteId, mtu: 23);
+          var resp = BmMtuChangedResponse(address: event.device.remoteId, mtu: 23);
           _methodStream.add(OnMtuChangedEvent(resp));
         }
 
@@ -586,14 +557,8 @@ class FlutterBluePlus {
     String method, [
     dynamic arguments,
   ]) async {
-    // return value
-    dynamic out;
-
     // only allow 1 invocation at a time (guarantees that hot restart finishes)
-    _Mutex mtx = _MutexFactory.getMutexForKey("invokeMethod");
-    await mtx.take();
-
-    try {
+    return _Mutex.invokeMethod.protect(() async {
       // initialize
       if (method != "setOptions" && method != "setLogLevel") {
         await _initFlutterBluePlus();
@@ -609,7 +574,7 @@ class FlutterBluePlus {
       }
 
       // invoke
-      out = await _methodChannel.invokeMethod(method, arguments);
+      dynamic out = await _methodChannel.invokeMethod(method, arguments);
 
       // log result
       if (logLevel == LogLevel.verbose) {
@@ -619,11 +584,9 @@ class FlutterBluePlus {
         result = _logColor ? _brown(result) : result;
         print("[FBP] $func result: $result");
       }
-    } finally {
-      mtx.give();
-    }
 
-    return out;
+      return out;
+    });
   }
 
   static Future<T> _invokeMethodAndWaitForEvent<T>(String method, dynamic arguments, bool test(T event)) async {
@@ -655,7 +618,7 @@ class FlutterBluePlus {
 
   static String _prettyPrint(dynamic data) {
     if (data is Map || data is List) {
-      const JsonEncoder encoder = JsonEncoder.withIndent('  ');
+      const JsonEncoder encoder = const JsonEncoder.withIndent('  ');
       return encoder.convert(data);
     } else {
       return data.toString();
@@ -665,29 +628,11 @@ class FlutterBluePlus {
   /// Checks if Bluetooth functionality is turned on
   @Deprecated('Use adapterState.first == BluetoothAdapterState.on instead')
   static Future<bool> get isOn async => await adapterState.first == BluetoothAdapterState.on;
-
-  @Deprecated('Use adapterName instead')
-  static Future<String> get name => adapterName;
-
-  @Deprecated('Use adapterState instead')
-  static Stream<BluetoothAdapterState> get state => adapterState;
-
-  @Deprecated('Use systemDevices instead')
-  static Future<List<BluetoothDevice>> get connectedSystemDevices => systemDevices([Guid("1800")]);
-
-  @Deprecated('No longer needed, remove this from your code')
-  static void get instance => null;
-
-  @Deprecated('Use isSupported instead')
-  static Future<bool> get isAvailable async => await isSupported;
-
-  @Deprecated('removed. read MIGRATION.md for simple alternatives')
-  static Stream<ScanResult> scan() => throw Exception;
 }
 
 /// Log levels for FlutterBlue
 enum LogLevel {
-  none, //0
+  none, // 0
   error, // 1
   warning, // 2
   info, // 3
@@ -744,55 +689,41 @@ class ServiceDataFilter {
   }
 }
 
-class DeviceIdentifier {
-  final String str;
-  const DeviceIdentifier(this.str);
-
-  @override
-  String toString() => str;
-
-  @override
-  int get hashCode => str.hashCode;
-
-  @override
-  bool operator ==(other) => other is DeviceIdentifier && _compareAsciiLowerCase(str, other.str) == 0;
-
-  @Deprecated('Use str instead')
-  String get id => str;
-}
-
 class ScanResult {
-  final DeviceIdentifier remoteId;
+  final String address;
+  final String platformName;
   final AdvertisementData advertisementData;
   final int rssi;
   final DateTime timeStamp;
 
   ScanResult({
-    required this.remoteId,
+    required this.address,
+    required this.platformName,
     required this.advertisementData,
     required this.rssi,
     required this.timeStamp,
   });
 
   ScanResult.fromProto(BmScanAdvertisement p)
-      : remoteId = p.remoteId,
+      : address = p.address,
+        platformName = p.platformName ?? "",
         advertisementData = AdvertisementData.fromProto(p),
         rssi = p.rssi,
         timeStamp = DateTime.now();
 
-  BluetoothDevice get device => FlutterBluePlus._deviceForId(remoteId);
+  BluetoothDevice get device => FlutterBluePlus._deviceForAddress(address);
 
   @override
   bool operator ==(Object other) =>
-      identical(this, other) || other is ScanResult && runtimeType == other.runtimeType && remoteId == other.remoteId;
+      identical(this, other) || other is ScanResult && runtimeType == other.runtimeType && address == other.address;
 
   @override
-  int get hashCode => remoteId.hashCode;
+  int get hashCode => address.hashCode;
 
   @override
   String toString() {
     return 'ScanResult{'
-        'remoteId: $remoteId, '
+        'address: $address, '
         'advertisementData: $advertisementData, '
         'rssi: $rssi, '
         'timeStamp: $timeStamp'
@@ -802,7 +733,6 @@ class ScanResult {
 
 class AdvertisementData {
   final String advName;
-  final String platformName;
   final int? txPowerLevel;
   final int? appearance; // not supported on iOS / macOS
   final bool connectable;
@@ -813,19 +743,16 @@ class AdvertisementData {
   /// for convenience, raw msd data
   ///   * interprets the first two byte as raw data,
   ///     as opposed to a `manufacturerId`
-  List<List<int>> get msd {
-    List<List<int>> output = [];
-    manufacturerData.forEach((manufacturerId, bytes) {
-      int low = manufacturerId & 0xFF;
-      int high = (manufacturerId >> 8) & 0xFF;
-      output.add([low, high] + bytes);
-    });
-    return output;
-  }
+  List<List<int>> get msd => manufacturerData.entries.map((entry) {
+        int manufacturerId = entry.key;
+        List<int> bytes = entry.value;
+        int low = manufacturerId & 0xFF;
+        int high = (manufacturerId >> 8) & 0xFF;
+        return [low, high] + bytes;
+      }).toList();
 
   AdvertisementData({
     required this.advName,
-    required this.platformName,
     required this.txPowerLevel,
     required this.appearance,
     required this.connectable,
@@ -836,7 +763,6 @@ class AdvertisementData {
 
   AdvertisementData.fromProto(BmScanAdvertisement p)
       : advName = p.advName ?? "",
-        platformName = p.platformName ?? "",
         txPowerLevel = p.txPowerLevel,
         appearance = p.appearance,
         connectable = p.connectable,
@@ -856,9 +782,6 @@ class AdvertisementData {
         'serviceUuids: $serviceUuids'
         '}';
   }
-
-  @Deprecated('use advName instead')
-  String get localName => advName;
 }
 
 class PhySupport {
@@ -881,18 +804,10 @@ class PhySupport {
 enum ErrorPlatform {
   fbp,
   android,
-  apple
+  apple;
 
-  // TODO DART 2.17 static ErrorPlatform get native => Platform.isAndroid ? android : apple;
+  static ErrorPlatform get native => Platform.isAndroid ? android : apple;
 }
-
-final ErrorPlatform _nativeError = (() {
-  if (Platform.isAndroid) {
-    return ErrorPlatform.android;
-  } else {
-    return ErrorPlatform.apple;
-  }
-})();
 
 enum FbpErrorCode {
   success,
@@ -929,13 +844,4 @@ class FlutterBluePlusException implements Exception {
     String sPlatform = platform.toString().split('.').last;
     return 'FlutterBluePlusException | $function | $sPlatform-code: $code | $description';
   }
-
-  @Deprecated('Use function instead')
-  String get errorName => function;
-
-  @Deprecated('Use code instead')
-  int? get errorCode => code;
-
-  @Deprecated('Use description instead')
-  String? get errorString => description;
 }

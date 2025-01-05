@@ -15,11 +15,6 @@ abstract class BluetoothAttribute {
     this.index,
   });
 
-  DeviceIdentifier get remoteId => device.remoteId;
-
-  @Deprecated('Use remoteId instead')
-  DeviceIdentifier get deviceId => remoteId;
-
   BluetoothAttribute? get _parentAttribute => null;
 
   String get identifier => "$uuid:$index";
@@ -68,10 +63,4 @@ abstract class BluetoothValueAttribute extends BluetoothAttribute {
       .map((e) => e as GetAttributeValueMixin)
       .where((e) => e.attribute == this)
       .map((e) => e.value);
-
-  @Deprecated('Use onValueReceived instead')
-  Stream<List<int>> get value => onValueReceived;
-
-  @Deprecated('Use onValueReceived instead')
-  Stream<List<int>> get onValueChangedStream => onValueReceived;
 }

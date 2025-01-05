@@ -50,7 +50,7 @@ class _SystemDeviceTileState extends State<SystemDeviceTile> {
   Widget build(BuildContext context) {
     return ListTile(
       title: Text(widget.device.platformName),
-      subtitle: Text(widget.device.remoteId.str),
+      subtitle: Text(widget.device.remoteId),
       trailing: ElevatedButton(
         child: isConnected ? const Text('OPEN') : const Text('CONNECT'),
         onPressed: isConnected ? widget.onOpen : widget.onConnect,

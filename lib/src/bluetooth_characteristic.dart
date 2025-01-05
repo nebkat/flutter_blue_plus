@@ -5,6 +5,8 @@
 part of flutter_blue_plus;
 
 final Guid cccdUuid = Guid("00002902-0000-1000-8000-00805f9b34fb");
+final int cccdBitNotify = 0x01;
+final int cccdBitIndicate = 0x02;
 
 class BluetoothCharacteristic extends BluetoothValueAttribute {
   final BluetoothService service;
@@ -22,19 +24,11 @@ class BluetoothCharacteristic extends BluetoothValueAttribute {
   BluetoothAttribute? get _parentAttribute => service;
 
   /// convenience accessor
-  Guid get characteristicUuid => uuid;
-
-  /// convenience accessor
-  BluetoothDescriptor? get cccd {
-    return descriptors._firstWhereOrNull((d) => d.uuid == cccdUuid);
-  }
+  BluetoothDescriptor? get cccd => descriptors.where((d) => d.uuid == cccdUuid).firstOrNull;
 
   /// return true if we're subscribed to this characteristic
   ///   -  you can subscribe using setNotifyValue(true)
-  bool get isNotifying {
-    List<int> lastValue = cccd?.lastValue ?? [];
-    return lastValue.isNotEmpty && (lastValue[0] & 0x03) > 0;
-  }
+  bool get isNotifying => (cccd?.lastValue.firstOrNull ?? 0) & (cccdBitNotify | cccdBitIndicate) > 0;
 
   /// read a characteristic
   Future<List<int>> read({int timeout = 15}) async {
@@ -45,12 +39,9 @@ class BluetoothCharacteristic extends BluetoothValueAttribute {
     }
 
     // Only allow a single ble operation to be underway at a time
-    _Mutex mtx = _MutexFactory.getMutexForKey("global");
-    await mtx.take();
-
-    try {
+    return _Mutex.global.protect(() async {
       var request = BmReadCharacteristicRequest(
-        remoteId: remoteId,
+        address: device.remoteId,
         identifier: identifierPath,
       );
 
@@ -72,9 +63,7 @@ class BluetoothCharacteristic extends BluetoothValueAttribute {
 
       // set return value
       return response.value;
-    } finally {
-      mtx.give();
-    }
+    });
   }
 
   /// Writes a characteristic.
@@ -101,14 +90,11 @@ class BluetoothCharacteristic extends BluetoothValueAttribute {
     }
 
     // Only allow a single ble operation to be underway at a time
-    _Mutex mtx = _MutexFactory.getMutexForKey("global");
-    await mtx.take();
-
-    try {
+    return _Mutex.global.protect(() async {
       final writeType = withoutResponse ? BmWriteType.withoutResponse : BmWriteType.withResponse;
 
       var request = BmWriteCharacteristicRequest(
-        remoteId: remoteId,
+        address: device.remoteId,
         identifier: identifierPath,
         writeType: writeType,
         allowLongWrite: allowLongWrite,
@@ -132,11 +118,7 @@ class BluetoothCharacteristic extends BluetoothValueAttribute {
 
       // failed?
       response.ensureSuccess('writeCharacteristic');
-
-      return Future.value();
-    } finally {
-      mtx.give();
-    }
+    });
   }
 
   /// Sets notifications or indications for the characteristic.
@@ -156,12 +138,9 @@ class BluetoothCharacteristic extends BluetoothValueAttribute {
     }
 
     // Only allow a single ble operation to be underway at a time
-    _Mutex mtx = _MutexFactory.getMutexForKey("global");
-    await mtx.take();
-
-    try {
+    await _Mutex.global.protect(() async {
       var request = BmSetNotifyValueRequest(
-        remoteId: remoteId,
+        address: device.remoteId,
         identifier: identifierPath,
         forceIndications: forceIndications,
         enable: notify,
@@ -188,9 +167,7 @@ class BluetoothCharacteristic extends BluetoothValueAttribute {
         // failed?
         response.ensureSuccess("setNotifyValue");
       }
-    } finally {
-      mtx.give();
-    }
+    });
 
     return true;
   }
@@ -198,7 +175,7 @@ class BluetoothCharacteristic extends BluetoothValueAttribute {
   @override
   String toString() {
     return 'BluetoothCharacteristic{'
-        'remoteId: $remoteId, '
+        'device.address: ${device.remoteId}, '
         'uuid: $uuid, '
         'serviceUuid: ${service.uuid}, '
         'descriptors: $descriptors, '

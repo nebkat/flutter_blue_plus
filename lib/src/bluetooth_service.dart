@@ -9,9 +9,6 @@ class BluetoothService extends BluetoothAttribute {
   late final List<BluetoothService> includedServices;
   late final List<BluetoothCharacteristic> characteristics;
 
-  /// convenience accessor
-  Guid get serviceUuid => uuid;
-
   /// for convenience
   bool get isSecondary => !isPrimary;
 
@@ -25,7 +22,7 @@ class BluetoothService extends BluetoothAttribute {
   @override
   String toString() {
     return 'BluetoothService{'
-        'remoteId: $remoteId, '
+        'device.address: ${device.remoteId}, '
         'isPrimary: $isPrimary, '
         'characteristics: $characteristics, '
         'includedServices: $includedServices'

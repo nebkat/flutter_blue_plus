@@ -14,9 +14,6 @@ class BluetoothDescriptor extends BluetoothValueAttribute {
   @override
   BluetoothAttribute? get _parentAttribute => characteristic;
 
-  /// convenience accessor
-  Guid get descriptorUuid => uuid;
-
   /// Retrieves the value of a specified descriptor
   Future<List<int>> read({int timeout = 15}) async {
     // check connected
@@ -26,12 +23,9 @@ class BluetoothDescriptor extends BluetoothValueAttribute {
     }
 
     // Only allow a single ble operation to be underway at a time
-    _Mutex mtx = _MutexFactory.getMutexForKey("global");
-    await mtx.take();
-
-    try {
+    return _Mutex.global.protect(() async {
       var request = BmReadDescriptorRequest(
-        remoteId: remoteId,
+        address: device.remoteId,
         identifier: identifierPath,
       );
 
@@ -52,9 +46,7 @@ class BluetoothDescriptor extends BluetoothValueAttribute {
       response.ensureSuccess("readDescriptor");
 
       return response.value;
-    } finally {
-      mtx.give();
-    }
+    });
   }
 
   /// Writes the value of a descriptor
@@ -66,12 +58,9 @@ class BluetoothDescriptor extends BluetoothValueAttribute {
     }
 
     // Only allow a single ble operation to be underway at a time
-    _Mutex mtx = _MutexFactory.getMutexForKey("global");
-    await mtx.take();
-
-    try {
+    await _Mutex.global.protect(() async {
       var request = BmWriteDescriptorRequest(
-        remoteId: remoteId,
+        address: device.remoteId,
         identifier: identifierPath,
         value: value,
       );
@@ -91,15 +80,13 @@ class BluetoothDescriptor extends BluetoothValueAttribute {
 
       // failed?
       response.ensureSuccess("writeDescriptor");
-    } finally {
-      mtx.give();
-    }
+    });
   }
 
   @override
   String toString() {
     return 'BluetoothDescriptor{'
-        'remoteId: $remoteId, '
+        'device.address: ${device.remoteId}, '
         'uuid: $uuid, '
         'characteristicUuid: ${characteristic.uuid}, '
         'lastValue: $lastValue'
