@@ -4,11 +4,9 @@
 
 part of flutter_blue_plus;
 
-final Guid cccdUuid = Guid("00002902-0000-1000-8000-00805f9b34fb");
-final int cccdBitNotify = 0x01;
-final int cccdBitIndicate = 0x02;
+final Uuid _cccdUuid = Uuid("00002902-0000-1000-8000-00805f9b34fb");
 
-class BluetoothCharacteristic extends BluetoothValueAttribute {
+class BluetoothCharacteristic extends BluetoothAttribute {
   final BluetoothService service;
   final CharacteristicProperties properties;
   late final List<BluetoothDescriptor> descriptors;
@@ -23,12 +21,28 @@ class BluetoothCharacteristic extends BluetoothValueAttribute {
   @override
   BluetoothAttribute? get _parentAttribute => service;
 
-  /// convenience accessor
-  BluetoothDescriptor? get cccd => descriptors.where((d) => d.uuid == cccdUuid).firstOrNull;
+  late final StreamController<List<int>> _streamController = StreamController<List<int>>.broadcast(
+    onListen: () async {
+      try {
+        await setNotifyValue(true);
+      } catch (e, stack) {
+        _streamController.addError(e, stack);
+      }
+    },
+    onCancel: () async {
+      if (device.isDisconnected) return;
+      try {
+        await setNotifyValue(false);
+      } catch (e, stack) {
+        _streamController.addError(e, stack);
+      }
+    },
+  );
 
-  /// return true if we're subscribed to this characteristic
-  ///   -  you can subscribe using setNotifyValue(true)
-  bool get isNotifying => (cccd?.lastValue.firstOrNull ?? 0) & (cccdBitNotify | cccdBitIndicate) > 0;
+  Stream<List<int>> get notifications => _streamController.stream;
+
+  /// convenience accessor
+  BluetoothDescriptor? get cccd => descriptors.where((d) => d.uuid == _cccdUuid).firstOrNull;
 
   /// read a characteristic
   Future<List<int>> read({int timeout = 15}) async {
@@ -174,13 +188,10 @@ class BluetoothCharacteristic extends BluetoothValueAttribute {
 
   @override
   String toString() {
-    return 'BluetoothCharacteristic{'
-        'device.address: ${device.remoteId}, '
+    return '${(BluetoothCharacteristic)}{'
         'uuid: $uuid, '
-        'serviceUuid: ${service.uuid}, '
-        'descriptors: $descriptors, '
         'properties: $properties, '
-        'value: $lastValue'
+        'descriptors: $descriptors'
         '}';
   }
 }
@@ -197,18 +208,6 @@ class CharacteristicProperties {
   final bool notifyEncryptionRequired;
   final bool indicateEncryptionRequired;
 
-  const CharacteristicProperties(
-      {this.broadcast = false,
-      this.read = false,
-      this.writeWithoutResponse = false,
-      this.write = false,
-      this.notify = false,
-      this.indicate = false,
-      this.authenticatedSignedWrites = false,
-      this.extendedProperties = false,
-      this.notifyEncryptionRequired = false,
-      this.indicateEncryptionRequired = false});
-
   CharacteristicProperties.fromProto(BmCharacteristicProperties p)
       : broadcast = p.broadcast,
         read = p.read,
@@ -223,17 +222,19 @@ class CharacteristicProperties {
 
   @override
   String toString() {
-    return 'CharacteristicProperties{'
-        'broadcast: $broadcast, '
-        'read: $read, '
-        'writeWithoutResponse: $writeWithoutResponse, '
-        'write: $write, '
-        'notify: $notify, '
-        'indicate: $indicate, '
-        'authenticatedSignedWrites: $authenticatedSignedWrites, '
-        'extendedProperties: $extendedProperties, '
-        'notifyEncryptionRequired: $notifyEncryptionRequired, '
-        'indicateEncryptionRequired: $indicateEncryptionRequired'
-        '}';
+    return "[" +
+        [
+          if (broadcast) 'broadcast',
+          if (read) 'read',
+          if (writeWithoutResponse) 'writeWithoutResponse',
+          if (write) 'write',
+          if (notify) 'notify',
+          if (indicate) 'indicate',
+          if (authenticatedSignedWrites) 'authenticatedSignedWrites',
+          if (extendedProperties) 'extendedProperties',
+          if (notifyEncryptionRequired) 'notifyEncryptionRequired',
+          if (indicateEncryptionRequired) 'indicateEncryptionRequired'
+        ].join(", ") +
+        "]";
   }
 }

@@ -49,7 +49,7 @@ mixin GetDeviceMixin {
 
 mixin GetAttributeValueMixin {
   dynamic get _response;
-  BluetoothValueAttribute get attribute;
+  BluetoothAttribute get attribute;
 
   /// the new data
   List<int> get value => _response.value;
@@ -60,7 +60,7 @@ mixin GetCharacteristicMixin on GetAttributeValueMixin, GetDeviceMixin {
   BluetoothCharacteristic get characteristic => device._characteristicForIdentifier(_response.identifier);
 
   /// the relevant attribute
-  BluetoothValueAttribute get attribute => characteristic;
+  BluetoothAttribute get attribute => characteristic;
 }
 
 mixin GetDescriptorMixin on GetAttributeValueMixin, GetDeviceMixin {
@@ -68,7 +68,7 @@ mixin GetDescriptorMixin on GetAttributeValueMixin, GetDeviceMixin {
   BluetoothDescriptor get descriptor => device._descriptorForIdentifier(_response.identifier);
 
   /// the relevant attribute
-  BluetoothValueAttribute get attribute => descriptor;
+  BluetoothAttribute get attribute => descriptor;
 }
 
 mixin GetExceptionMixin {

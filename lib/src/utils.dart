@@ -1,5 +1,9 @@
 part of flutter_blue_plus;
 
+extension IntHexString on int {
+  String toHexString(int width) => toRadixString(16).padLeft(width, '0');
+}
+
 String _hexEncode(List<int> numbers) {
   return numbers.map((n) => (n & 0xFF).toRadixString(16).padLeft(2, '0')).join();
 }

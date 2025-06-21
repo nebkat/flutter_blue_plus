@@ -4,7 +4,7 @@
 
 part of flutter_blue_plus;
 
-class BluetoothDescriptor extends BluetoothValueAttribute {
+class BluetoothDescriptor extends BluetoothAttribute {
   final BluetoothCharacteristic characteristic;
 
   BluetoothDescriptor.fromProto(BmBluetoothDescriptor p, BluetoothCharacteristic characteristic)
@@ -85,11 +85,8 @@ class BluetoothDescriptor extends BluetoothValueAttribute {
 
   @override
   String toString() {
-    return 'BluetoothDescriptor{'
-        'device.address: ${device.remoteId}, '
-        'uuid: $uuid, '
-        'characteristicUuid: ${characteristic.uuid}, '
-        'lastValue: $lastValue'
+    return '${(BluetoothDescriptor)}{'
+        'uuid: $uuid'
         '}';
   }
 }

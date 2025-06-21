@@ -8,6 +8,7 @@ import 'dart:async';
 import 'dart:collection';
 import 'dart:convert';
 import 'dart:io';
+import 'dart:math';
 
 import 'package:flutter/services.dart';
 
@@ -20,5 +21,5 @@ part 'src/bluetooth_msgs.dart';
 part 'src/bluetooth_service.dart';
 part 'src/bluetooth_utils.dart';
 part 'src/flutter_blue_plus.dart';
-part 'src/guid.dart';
+part 'src/uuid.dart';
 part 'src/utils.dart';

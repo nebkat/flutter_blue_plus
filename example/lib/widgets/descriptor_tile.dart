@@ -18,22 +18,22 @@ class DescriptorTile extends StatefulWidget {
 class _DescriptorTileState extends State<DescriptorTile> {
   List<int> _value = [];
 
-  late StreamSubscription<List<int>> _lastValueSubscription;
+  //late StreamSubscription<List<int>> _lastValueSubscription;
 
   @override
   void initState() {
     super.initState();
-    _lastValueSubscription = widget.descriptor.lastValueStream.listen((value) {
-      _value = value;
-      if (mounted) {
-        setState(() {});
-      }
-    });
+    // _lastValueSubscription = widget.descriptor.lastValueStream.listen((value) {
+    //   _value = value;
+    //   if (mounted) {
+    //     setState(() {});
+    //   }
+    // });
   }
 
   @override
   void dispose() {
-    _lastValueSubscription.cancel();
+    // _lastValueSubscription.cancel();
     super.dispose();
   }
 
@@ -65,7 +65,7 @@ class _DescriptorTileState extends State<DescriptorTile> {
   }
 
   Widget buildUuid(BuildContext context) {
-    String uuid = '0x${widget.descriptor.uuid.str.toUpperCase()}';
+    String uuid = '0x${widget.descriptor.uuid.string.toUpperCase()}';
     return Text(uuid, style: TextStyle(fontSize: 13));
   }
 

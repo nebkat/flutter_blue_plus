@@ -44,11 +44,11 @@ class _ScanResultTileState extends State<ScanResultTile> {
     return data.map((val) => '${getNiceHexArray(val)}').join(', ').toUpperCase();
   }
 
-  String getNiceServiceData(Map<Guid, List<int>> data) {
+  String getNiceServiceData(Map<Uuid, List<int>> data) {
     return data.entries.map((v) => '${v.key}: ${getNiceHexArray(v.value)}').join(', ').toUpperCase();
   }
 
-  String getNiceServiceUuids(List<Guid> serviceUuids) {
+  String getNiceServiceUuids(List<Uuid> serviceUuids) {
     return serviceUuids.join(', ').toUpperCase();
   }
 

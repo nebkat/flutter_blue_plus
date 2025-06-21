@@ -4,8 +4,8 @@
 
 part of flutter_blue_plus;
 
-final Guid gattUuid = Guid("1801");
-final Guid servicesChangedUuid = Guid("2A05");
+final Uuid gattUuid = Uuid("1801");
+final Uuid servicesChangedUuid = Uuid("2A05");
 
 class BluetoothDevice {
   final String remoteId;
@@ -25,21 +25,17 @@ class BluetoothDevice {
   final List<StreamSubscription> _subscriptions = [];
   final List<StreamSubscription> _delayedSubscriptions = [];
 
-  BluetoothDevice._internal({
+  BluetoothDevice._({
     required this.remoteId,
   });
 
-  factory BluetoothDevice({required String remoteId}) {
-    return FlutterBluePlus._deviceForAddress(remoteId);
-  }
+  factory BluetoothDevice({required String remoteId}) => FlutterBluePlus._deviceForAddress(remoteId);
 
   /// Create a device from an id
   ///   - to connect, this device must have been discovered by your app in a previous scan
   ///   - iOS uses 128-bit uuids the remoteId, e.g. e006b3a7-ef7b-4980-a668-1f8005f84383
   ///   - Android uses 48-bit mac addresses as the remoteId, e.g. 06:E5:28:3B:FD:E0
-  factory BluetoothDevice.fromId(String address) {
-    return FlutterBluePlus._deviceForAddress(address);
-  }
+  factory BluetoothDevice.fromId(String address) => FlutterBluePlus._deviceForAddress(address);
 
   /// platform name
   /// - this name is kept track of by the platform
@@ -100,7 +96,7 @@ class BluetoothDevice {
   ///        because it relies on the internal scheduling of background scans.
   Future<void> connect({
     Duration timeout = const Duration(seconds: 35),
-    int? mtu = 512,
+    int? mtu = 517,
     bool autoConnect = false,
   }) async {
     // If you hit this assert, you must set `mtu:null`, i.e `device.connect(mtu:null, autoConnect:true)`
@@ -269,8 +265,8 @@ class BluetoothDevice {
     if (subscribeToServicesChanged) {
       if (Platform.isIOS == false && Platform.isMacOS == false) {
         BluetoothCharacteristic? c = _servicesChangedCharacteristic;
-        if (c != null && (c.properties.notify || c.properties.indicate) && c.isNotifying == false) {
-          await c.setNotifyValue(true);
+        if (c != null && (c.properties.notify || c.properties.indicate)) {
+          await c.setNotifyValue(true); // TODO: Use notifications
         }
       }
     }
@@ -300,6 +296,9 @@ class BluetoothDevice {
   Stream<int> get mtu => FlutterBluePlus._extractEventStream<OnMtuChangedEvent>((e) => e.device == this)
       .map((e) => e.mtu)
       .newStreamWithInitialValue(mtuNow);
+
+  int get maxAttrLenNow => min(512, mtuNow - 3);
+  Stream<int> get maxAttrLen => mtu.map((m) => min(512, m - 3));
 
   /// Services Reset Stream
   ///  - uses the GAP Services Changed characteristic (0x2A05)
@@ -600,7 +599,7 @@ class BluetoothDevice {
     if (parts.length != 2) {
       throw ArgumentError.value(identifier, "identifier", "must be in the form 'uuid:index'");
     }
-    final uuid = Guid(parts[0]);
+    final uuid = Uuid(parts[0]);
     final index = int.parse(parts[1]);
     return list.firstWhere((s) => s.uuid == uuid && s.index == index);
   }
@@ -626,7 +625,7 @@ class BluetoothDevice {
           "must be in the form 'serviceUuid:index/characteristicUuid:index/descriptorUuid:index'");
     }
     final characteristic = _characteristicForIdentifier(parts[0] + "/" + parts[1]);
-    return characteristic.descriptors.firstWhere((d) => d.uuid == Guid(parts[2]));
+    return characteristic.descriptors.firstWhere((d) => d.uuid == Uuid(parts[2]));
   }
 
   @override
@@ -639,7 +638,7 @@ class BluetoothDevice {
 
   @override
   String toString() {
-    return 'BluetoothDevice{'
+    return '${(BluetoothDevice)}{'
         'remoteId: $remoteId, '
         'platformName: $platformName, '
         'services: ${_services}'

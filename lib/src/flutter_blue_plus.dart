@@ -159,8 +159,8 @@ class FlutterBluePlus {
   /// - The list includes devices connected to by *any* app
   /// - You must still call device.connect() to connect them to *your app*
   /// - [withServices] required on iOS (for privacy purposes). ignored on android.
-  static Future<List<BluetoothDevice>> systemDevices(List<Guid> withServices) async {
-    var result = await _invokeMethod('getSystemDevices', {"with_services": withServices.map((s) => s.str).toList()});
+  static Future<List<BluetoothDevice>> systemDevices(List<Uuid> withServices) async {
+    var result = await _invokeMethod('getSystemDevices', {"with_services": withServices.map((s) => s.string).toList()});
     var r = BmDevicesList.fromMap(result);
     return r.devices.map((d) => FlutterBluePlus._deviceForAddress(d.address).._platformName = d.platformName).toList();
   }
@@ -197,7 +197,7 @@ class FlutterBluePlus {
   ///   - [androidScanMode] choose the android scan mode to use when scanning
   ///   - [androidUsesFineLocation] request `ACCESS_FINE_LOCATION` permission at runtime
   static Future<void> startScan({
-    List<Guid> withServices = const [],
+    List<Uuid> withServices = const [],
     List<String> withRemoteIds = const [],
     List<String> withNames = const [],
     List<String> withKeywords = const [],
@@ -379,7 +379,7 @@ class FlutterBluePlus {
   }
 
   static BluetoothDevice _deviceForAddress(String address) {
-    return _devices.putIfAbsent(address, () => BluetoothDevice._internal(remoteId: address));
+    return _devices.putIfAbsent(address, () => BluetoothDevice._(remoteId: address));
   }
 
   static Future<dynamic> _initFlutterBluePlus() async {
@@ -532,14 +532,6 @@ class FlutterBluePlus {
       event.device._mtu = event.mtu;
     }
 
-    // keep track of characteristic & descriptor values
-    if (event is OnCharacteristicReceivedEvent ||
-        event is OnCharacteristicWrittenEvent ||
-        event is OnDescriptorReadEvent ||
-        event is OnDescriptorWrittenEvent) {
-      (event as GetAttributeValueMixin).attribute._lastValue = event.value;
-    }
-
     _methodStream.add(event);
 
     // cancel delayed subscriptions
@@ -670,7 +662,7 @@ class MsdFilter {
 }
 
 class ServiceDataFilter {
-  Guid service;
+  Uuid service;
 
   // filter for this data
   List<int> data;
@@ -737,8 +729,8 @@ class AdvertisementData {
   final int? appearance; // not supported on iOS / macOS
   final bool connectable;
   final Map<int, List<int>> manufacturerData; // key: manufacturerId
-  final Map<Guid, List<int>> serviceData; // key: service guid
-  final List<Guid> serviceUuids;
+  final Map<Uuid, List<int>> serviceData; // key: service guid
+  final List<Uuid> serviceUuids;
 
   /// for convenience, raw msd data
   ///   * interprets the first two byte as raw data,

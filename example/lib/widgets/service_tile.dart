@@ -10,7 +10,7 @@ class ServiceTile extends StatelessWidget {
   const ServiceTile({Key? key, required this.service, required this.characteristicTiles}) : super(key: key);
 
   Widget buildUuid(BuildContext context) {
-    String uuid = '0x${service.uuid.str.toUpperCase()}';
+    String uuid = '0x${service.uuid.string.toUpperCase()}';
     return Text(uuid, style: TextStyle(fontSize: 13));
   }
 

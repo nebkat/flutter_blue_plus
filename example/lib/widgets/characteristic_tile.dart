@@ -21,22 +21,20 @@ class CharacteristicTile extends StatefulWidget {
 class _CharacteristicTileState extends State<CharacteristicTile> {
   List<int> _value = [];
 
-  late StreamSubscription<List<int>> _lastValueSubscription;
-
   @override
   void initState() {
     super.initState();
-    _lastValueSubscription = widget.characteristic.lastValueStream.listen((value) {
-      _value = value;
-      if (mounted) {
-        setState(() {});
-      }
-    });
+    // _lastValueSubscription = widget.characteristic.lastValueStream.listen((value) {
+    //   _value = value;
+    //   if (mounted) {
+    //     setState(() {});
+    //   }
+    // });
   }
 
   @override
   void dispose() {
-    _lastValueSubscription.cancel();
+    // _lastValueSubscription.cancel();
     super.dispose();
   }
 
@@ -72,9 +70,9 @@ class _CharacteristicTileState extends State<CharacteristicTile> {
 
   Future onSubscribePressed() async {
     try {
-      String op = c.isNotifying == false ? "Subscribe" : "Unubscribe";
-      await c.setNotifyValue(c.isNotifying == false);
-      Snackbar.show(ABC.c, "$op : Success", success: true);
+      // String op = c.isNotifying == false ? "Subscribe" : "Unubscribe";
+      // await c.setNotifyValue(c.isNotifying == false);
+      // Snackbar.show(ABC.c, "$op : Success", success: true);
       if (c.properties.read) {
         await c.read();
       }
@@ -88,7 +86,7 @@ class _CharacteristicTileState extends State<CharacteristicTile> {
   }
 
   Widget buildUuid(BuildContext context) {
-    String uuid = '0x${widget.characteristic.uuid.str.toUpperCase()}';
+    String uuid = '0x${widget.characteristic.uuid.string.toUpperCase()}';
     return Text(uuid, style: TextStyle(fontSize: 13));
   }
 
@@ -121,9 +119,9 @@ class _CharacteristicTileState extends State<CharacteristicTile> {
   }
 
   Widget buildSubscribeButton(BuildContext context) {
-    bool isNotifying = widget.characteristic.isNotifying;
+    //bool isNotifying = false;//widget.characteristic.isNotifying;
     return TextButton(
-        child: Text(isNotifying ? "Unsubscribe" : "Subscribe"),
+        child: Text(""), //isNotifying ? "Unsubscribe" : "Subscribe"),
         onPressed: () async {
           await onSubscribePressed();
           if (mounted) {

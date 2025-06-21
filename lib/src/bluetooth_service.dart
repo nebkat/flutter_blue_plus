@@ -21,8 +21,8 @@ class BluetoothService extends BluetoothAttribute {
 
   @override
   String toString() {
-    return 'BluetoothService{'
-        'device.address: ${device.remoteId}, '
+    return '${(BluetoothService)}{'
+        'uuid: $uuid, '
         'isPrimary: $isPrimary, '
         'characteristics: $characteristics, '
         'includedServices: $includedServices'

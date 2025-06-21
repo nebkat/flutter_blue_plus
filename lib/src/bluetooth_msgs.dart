@@ -36,19 +36,19 @@ class BmMsdFilter {
 }
 
 class BmServiceDataFilter {
-  Guid service;
+  Uuid service;
   List<int> data;
   List<int> mask;
   BmServiceDataFilter(this.service, this.data, this.mask);
   Map<dynamic, dynamic> toMap() => {
-        'service': service.str,
+        'service': service.string,
         'data': _hexEncode(data),
         'mask': _hexEncode(mask),
       };
 }
 
 class BmScanSettings {
-  final List<Guid> withServices;
+  final List<Uuid> withServices;
   final List<String> withRemoteIds;
   final List<String> withNames;
   final List<String> withKeywords;
@@ -75,7 +75,7 @@ class BmScanSettings {
   });
 
   Map<dynamic, dynamic> toMap() => {
-        'with_services': withServices.map((s) => s.str).toList(),
+        'with_services': withServices.map((s) => s.string).toList(),
         'with_remote_ids': withRemoteIds,
         'with_names': withNames,
         'with_keywords': withKeywords,
@@ -97,8 +97,8 @@ class BmScanAdvertisement {
   final int? txPowerLevel;
   final int? appearance; // not supported on iOS / macOS
   final Map<int, List<int>> manufacturerData;
-  final Map<Guid, List<int>> serviceData;
-  final List<Guid> serviceUuids;
+  final Map<Uuid, List<int>> serviceData;
+  final List<Uuid> serviceUuids;
   final int rssi;
 
   BmScanAdvertisement({
@@ -125,8 +125,8 @@ class BmScanAdvertisement {
             json['manufacturer_data']?.map<int, List<int>>((key, value) => MapEntry(key as int, _hexDecode(value))) ??
                 {},
         serviceData =
-            json['service_data']?.map<Guid, List<int>>((key, value) => MapEntry(Guid(key), _hexDecode(value))) ?? {},
-        serviceUuids = json['service_uuids']?.map((v) => Guid(v)).toList() ?? [],
+            json['service_data']?.map<Uuid, List<int>>((key, value) => MapEntry(Uuid(key), _hexDecode(value))) ?? {},
+        serviceUuids = json['service_uuids']?.map((v) => Uuid(v)).toList() ?? [],
         rssi = json['rssi'] ?? 0;
 }
 
@@ -191,14 +191,14 @@ class BmNameChanged {
 }
 
 class BmBluetoothService {
-  final Guid uuid;
+  final Uuid uuid;
   final int index;
   final bool isPrimary;
   List<BmBluetoothCharacteristic> characteristics;
   List<String> includedServices;
 
   BmBluetoothService.fromMap(Map<dynamic, dynamic> json)
-      : uuid = Guid(json['uuid']),
+      : uuid = Uuid(json['uuid']),
         index = json['index'],
         isPrimary = json['primary'] != 0,
         characteristics = (json['characteristics'] as List<dynamic>)
@@ -208,22 +208,22 @@ class BmBluetoothService {
 }
 
 class BmBluetoothCharacteristic {
-  final Guid uuid;
+  final Uuid uuid;
   final int index;
   List<BmBluetoothDescriptor> descriptors;
   BmCharacteristicProperties properties;
 
   BmBluetoothCharacteristic.fromMap(Map<dynamic, dynamic> json)
-      : uuid = Guid(json['uuid']),
+      : uuid = Uuid(json['uuid']),
         index = json['index'],
         descriptors = (json['descriptors'] as List<dynamic>).map((v) => BmBluetoothDescriptor.fromMap(v)).toList(),
         properties = BmCharacteristicProperties.fromMap(json['properties']);
 }
 
 class BmBluetoothDescriptor {
-  final Guid uuid;
+  final Uuid uuid;
 
-  BmBluetoothDescriptor.fromMap(Map<dynamic, dynamic> json) : uuid = Guid(json['uuid']);
+  BmBluetoothDescriptor.fromMap(Map<dynamic, dynamic> json) : uuid = Uuid(json['uuid']);
 }
 
 class BmCharacteristicProperties {
