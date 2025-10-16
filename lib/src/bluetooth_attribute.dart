@@ -2,7 +2,10 @@
 // All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-part of flutter_blue_plus;
+import 'package:flutter/foundation.dart';
+
+import 'bluetooth_device.dart';
+import 'uuid.dart';
 
 abstract class BluetoothAttribute {
   final BluetoothDevice device;
@@ -15,10 +18,10 @@ abstract class BluetoothAttribute {
     this.index,
   });
 
-  BluetoothAttribute? get _parentAttribute => null;
+  @internal
+  BluetoothAttribute? get parentAttribute => null;
 
   String get identifier => "$uuid:$index";
 
-  String get identifierPath =>
-      _parentAttribute != null ? "${_parentAttribute!.identifierPath}/$identifier" : identifier;
+  String get identifierPath => parentAttribute != null ? "${parentAttribute!.identifierPath}/$identifier" : identifier;
 }

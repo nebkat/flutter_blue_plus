@@ -229,24 +229,6 @@ await device.disconnect();
 subscription.cancel();
 ```
 
-### Auto Connect
-
-Connects whenever your device is found.
-
-```dart
-// enable auto connect
-//  - note: autoConnect is incompatible with mtu argument, so you must call requestMtu yourself
-await device.connect(autoConnect:true, mtu:null)
-
-// wait until connection
-//  - when using autoConnect, connect() always returns immediately, so we must
-//    explicity listen to `device.connectionState` to know when connection occurs 
-await device.connectionState.where((val) => val == BluetoothConnectionState.connected).first;
-
-// disable auto connect
-await device.disconnect()
-```
-
 ### Save Device
 
 To save a device between app restarts, just write the `remoteId` to a file.
@@ -334,7 +316,7 @@ import 'dart:math';
 //    2. it can only be used *with* response to avoid data loss
 //    3. The characteristic must be designed to support split data
 extension splitWrite on BluetoothCharacteristic {
-  Future<void> splitWrite(List<int> value, {int timeout = 15}) async {
+  Future<void> splitWrite(List<int> value, {Duration timeout = const Duration(seconds: 15)}) async {
     int chunk = min(device.mtuNow - 3, 512); // 3 bytes BLE overhead, 512 bytes max
     for (int i = 0; i < value.length; i += chunk) {
       List<int> subvalue = value.sublist(i, min(i + chunk, value.length));
@@ -495,12 +477,12 @@ To mock `FlutterBluePlus` for development, refer to the [Mocking Guide](MOCKING.
 
 ### Change the minSdkVersion for Android
 
-flutter_blue_plus is compatible only from version 21 of Android SDK so you should change this in **android/app/build.gradle**:
+flutter_blue_plus is compatible only from version 24 of Android SDK so you should change this in **android/app/build.gradle**:
 
 ```dart
 android {
   defaultConfig {
-     minSdkVersion: 21
+     minSdkVersion: 24
 ```
 
 ### Add permissions for Android (No Location)

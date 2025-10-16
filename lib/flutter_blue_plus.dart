@@ -4,22 +4,14 @@
 
 library flutter_blue_plus;
 
-import 'dart:async';
-import 'dart:collection';
-import 'dart:convert';
-import 'dart:io';
-import 'dart:math';
-
-import 'package:flutter/services.dart';
-
-part 'src/bluetooth_attribute.dart';
-part 'src/bluetooth_characteristic.dart';
-part 'src/bluetooth_descriptor.dart';
-part 'src/bluetooth_device.dart';
-part 'src/bluetooth_events.dart';
-part 'src/bluetooth_msgs.dart';
-part 'src/bluetooth_service.dart';
-part 'src/bluetooth_utils.dart';
-part 'src/flutter_blue_plus.dart';
-part 'src/uuid.dart';
-part 'src/utils.dart';
+export 'src/bluetooth_attribute.dart';
+export 'src/bluetooth_characteristic.dart';
+export 'src/bluetooth_descriptor.dart';
+export 'src/bluetooth_device.dart';
+export 'src/bluetooth_events.dart';
+export 'src/bluetooth_msgs.dart';
+export 'src/bluetooth_service.dart';
+export 'src/bluetooth_utils.dart';
+export 'src/flutter_blue_plus.dart';
+export 'src/utils.dart';
+export 'src/uuid.dart';

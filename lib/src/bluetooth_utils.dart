@@ -1,4 +1,5 @@
-part of flutter_blue_plus;
+import 'bluetooth_msgs.dart';
+import 'flutter_blue_plus.dart';
 
 /// State of the bluetooth adapter.
 enum BluetoothAdapterState { unknown, unavailable, unauthorized, turningOn, on, turningOff, off }
@@ -9,13 +10,11 @@ class DisconnectReason {
   final String? description;
   DisconnectReason(this.platform, this.code, this.description);
   @override
-  String toString() {
-    return 'DisconnectReason{'
-        'platform: $platform, '
-        'code: $code, '
-        '$description'
-        '}';
-  }
+  String toString() => 'DisconnectReason{'
+      'platform: $platform, '
+      'code: $code, '
+      '$description'
+      '}';
 }
 
 enum BluetoothConnectionState {
@@ -23,12 +22,12 @@ enum BluetoothConnectionState {
   connected,
 }
 
-BluetoothConnectionState _bmToConnectionState(BmConnectionStateEnum value) => switch (value) {
+BluetoothConnectionState bmToConnectionState(BmConnectionStateEnum value) => switch (value) {
       BmConnectionStateEnum.disconnected => BluetoothConnectionState.disconnected,
       BmConnectionStateEnum.connected => BluetoothConnectionState.connected
     };
 
-BluetoothAdapterState _bmToAdapterState(BmAdapterStateEnum value) => switch (value) {
+BluetoothAdapterState bmToAdapterState(BmAdapterStateEnum value) => switch (value) {
       BmAdapterStateEnum.unknown => BluetoothAdapterState.unknown,
       BmAdapterStateEnum.unavailable => BluetoothAdapterState.unavailable,
       BmAdapterStateEnum.unauthorized => BluetoothAdapterState.unauthorized,
@@ -38,7 +37,7 @@ BluetoothAdapterState _bmToAdapterState(BmAdapterStateEnum value) => switch (val
       BmAdapterStateEnum.off => BluetoothAdapterState.off
     };
 
-BmConnectionPriorityEnum _bmFromConnectionPriority(ConnectionPriority value) => switch (value) {
+BmConnectionPriorityEnum bmFromConnectionPriority(ConnectionPriority value) => switch (value) {
       ConnectionPriority.balanced => BmConnectionPriorityEnum.balanced,
       ConnectionPriority.high => BmConnectionPriorityEnum.high,
       ConnectionPriority.lowPower => BmConnectionPriorityEnum.lowPower
@@ -49,7 +48,7 @@ BmConnectionPriorityEnum _bmFromConnectionPriority(ConnectionPriority value) => 
 // [bonded] bond success
 enum BluetoothBondState { none, bonding, bonded }
 
-BluetoothBondState _bmToBondState(BmBondStateEnum value) => switch (value) {
+BluetoothBondState bmToBondState(BmBondStateEnum value) => switch (value) {
       BmBondStateEnum.none => BluetoothBondState.none,
       BmBondStateEnum.bonding => BluetoothBondState.bonding,
       BmBondStateEnum.bonded => BluetoothBondState.bonded

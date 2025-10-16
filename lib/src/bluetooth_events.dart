@@ -1,33 +1,39 @@
-part of flutter_blue_plus;
+import 'bluetooth_attribute.dart';
+import 'bluetooth_characteristic.dart';
+import 'bluetooth_descriptor.dart';
+import 'bluetooth_device.dart';
+import 'bluetooth_msgs.dart';
+import 'bluetooth_utils.dart';
+import 'flutter_blue_plus.dart';
 
 class BluetoothEvents {
   Stream<OnConnectionStateChangedEvent> get onConnectionStateChanged =>
-      FlutterBluePlus._extractEventStream<OnConnectionStateChangedEvent>();
+      FlutterBluePlus.extractEventStream<OnConnectionStateChangedEvent>();
 
-  Stream<OnMtuChangedEvent> get onMtuChanged => FlutterBluePlus._extractEventStream<OnMtuChangedEvent>();
+  Stream<OnMtuChangedEvent> get onMtuChanged => FlutterBluePlus.extractEventStream<OnMtuChangedEvent>();
 
-  Stream<OnReadRssiEvent> get onReadRssi => FlutterBluePlus._extractEventStream<OnReadRssiEvent>();
+  Stream<OnReadRssiEvent> get onReadRssi => FlutterBluePlus.extractEventStream<OnReadRssiEvent>();
 
-  Stream<OnServicesResetEvent> get onServicesReset => FlutterBluePlus._extractEventStream<OnServicesResetEvent>();
+  Stream<OnServicesResetEvent> get onServicesReset => FlutterBluePlus.extractEventStream<OnServicesResetEvent>();
 
   Stream<OnDiscoveredServicesEvent> get onDiscoveredServices =>
-      FlutterBluePlus._extractEventStream<OnDiscoveredServicesEvent>();
+      FlutterBluePlus.extractEventStream<OnDiscoveredServicesEvent>();
 
   Stream<OnCharacteristicReceivedEvent> get onCharacteristicReceived =>
-      FlutterBluePlus._extractEventStream<OnCharacteristicReceivedEvent>();
+      FlutterBluePlus.extractEventStream<OnCharacteristicReceivedEvent>();
 
   Stream<OnCharacteristicWrittenEvent> get onCharacteristicWritten =>
-      FlutterBluePlus._extractEventStream<OnCharacteristicWrittenEvent>();
+      FlutterBluePlus.extractEventStream<OnCharacteristicWrittenEvent>();
 
-  Stream<OnDescriptorReadEvent> get onDescriptorRead => FlutterBluePlus._extractEventStream<OnDescriptorReadEvent>();
+  Stream<OnDescriptorReadEvent> get onDescriptorRead => FlutterBluePlus.extractEventStream<OnDescriptorReadEvent>();
 
   Stream<OnDescriptorWrittenEvent> get onDescriptorWritten =>
-      FlutterBluePlus._extractEventStream<OnDescriptorWrittenEvent>();
+      FlutterBluePlus.extractEventStream<OnDescriptorWrittenEvent>();
 
-  Stream<OnNameChangedEvent> get onNameChanged => FlutterBluePlus._extractEventStream<OnNameChangedEvent>();
+  Stream<OnNameChangedEvent> get onNameChanged => FlutterBluePlus.extractEventStream<OnNameChangedEvent>();
 
   Stream<OnBondStateChangedEvent> get onBondStateChanged =>
-      FlutterBluePlus._extractEventStream<OnBondStateChangedEvent>();
+      FlutterBluePlus.extractEventStream<OnBondStateChangedEvent>();
 }
 
 class FbpError {
@@ -44,7 +50,7 @@ mixin GetDeviceMixin {
   dynamic get _response;
 
   /// the relevant device
-  BluetoothDevice get device => FlutterBluePlus._deviceForAddress(_response.remoteId);
+  BluetoothDevice get device => FlutterBluePlus.deviceForAddress(_response.remoteId);
 }
 
 mixin GetAttributeValueMixin {
@@ -57,7 +63,7 @@ mixin GetAttributeValueMixin {
 
 mixin GetCharacteristicMixin on GetAttributeValueMixin, GetDeviceMixin {
   /// the relevant characteristic
-  BluetoothCharacteristic get characteristic => device._characteristicForIdentifier(_response.identifier);
+  BluetoothCharacteristic get characteristic => device.characteristicForIdentifier(_response.identifier);
 
   /// the relevant attribute
   BluetoothAttribute get attribute => characteristic;
@@ -65,7 +71,7 @@ mixin GetCharacteristicMixin on GetAttributeValueMixin, GetDeviceMixin {
 
 mixin GetDescriptorMixin on GetAttributeValueMixin, GetDeviceMixin {
   /// the relevant descriptor
-  BluetoothDescriptor get descriptor => device._descriptorForIdentifier(_response.identifier);
+  BluetoothDescriptor get descriptor => device.descriptorForIdentifier(_response.identifier);
 
   /// the relevant attribute
   BluetoothAttribute get attribute => descriptor;
@@ -132,11 +138,12 @@ class OnConnectionStateChangedEvent with GetDeviceMixin {
   OnConnectionStateChangedEvent.fromMap(Map<String, dynamic> map) : _response = BmConnectionStateResponse.fromMap(map);
 
   /// the new connection state
-  BluetoothConnectionState get connectionState => _bmToConnectionState(_response.connectionState);
+  BluetoothConnectionState get connectionState => bmToConnectionState(_response.connectionState);
 
   /// the disconnect reason
-  DisconnectReason? get disconnectReason =>
-      DisconnectReason(ErrorPlatform.native, _response.disconnectReasonCode, _response.disconnectReasonString);
+  DisconnectReason? get disconnectReason => connectionState == BluetoothConnectionState.disconnected
+      ? DisconnectReason(ErrorPlatform.native, _response.disconnectReasonCode, _response.disconnectReasonString)
+      : null;
 }
 
 // On Adapter State Changed
@@ -149,7 +156,7 @@ class OnAdapterStateChangedEvent {
   OnAdapterStateChangedEvent.fromMap(Map<String, dynamic> map) : _response = BmBluetoothAdapterState.fromMap(map);
 
   /// the new adapter state
-  BluetoothAdapterState get adapterState => _bmToAdapterState(_response.adapterState);
+  BluetoothAdapterState get adapterState => bmToAdapterState(_response.adapterState);
 }
 
 // On Mtu Changed
@@ -197,31 +204,7 @@ class OnDiscoveredServicesEvent with GetDeviceMixin, GetExceptionMixin {
   OnDiscoveredServicesEvent(this._response);
   OnDiscoveredServicesEvent.fromMap(Map<String, dynamic> map) : _response = BmDiscoverServicesResult.fromMap(map);
 
-  /// the new services
-  List<BluetoothService> _constructServices() {
-    final List<BluetoothService> services = [];
-    Map<BluetoothService, List<String>> includedServicesMap = {};
-    for (final bmService in _response.services) {
-      final service = BluetoothService.fromProto(device, bmService);
-      services.add(service);
-      includedServicesMap[service] = bmService.includedServices;
-    }
-
-    for (final entry in includedServicesMap.entries) {
-      final service = entry.key;
-      final includedServices = entry.value;
-      service.includedServices = includedServices.map((uuid) {
-        final includedService = services.where((s) => s.identifier == uuid).firstOrNull;
-        if (includedService == null) {
-          throw FlutterBluePlusException(
-              ErrorPlatform.fbp, method, FbpErrorCode.serviceNotFound.index, "service not found: $uuid");
-        }
-        return includedService;
-      }).toList();
-    }
-
-    return services;
-  }
+  List<BmBluetoothService> get servicesProtos => _response.services;
 }
 
 // On Characteristic Received
@@ -289,6 +272,6 @@ class OnBondStateChangedEvent with GetDeviceMixin {
   OnBondStateChangedEvent.fromMap(Map<String, dynamic> map) : _response = BmBondStateResponse.fromMap(map);
 
   /// the new bond state
-  BluetoothBondState get bondState => _bmToBondState(_response.bondState);
-  BluetoothBondState? get prevState => _response.prevState == null ? null : _bmToBondState(_response.prevState!);
+  BluetoothBondState get bondState => bmToBondState(_response.bondState);
+  BluetoothBondState? get prevState => _response.prevState == null ? null : bmToBondState(_response.prevState!);
 }

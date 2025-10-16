@@ -1,4 +1,5 @@
-part of flutter_blue_plus;
+import 'utils.dart';
+import 'uuid.dart';
 
 enum BmAdapterStateEnum {
   unknown, // 0
@@ -30,20 +31,20 @@ class BmMsdFilter {
   BmMsdFilter(this.manufacturerId, this.data, this.mask);
   Map<dynamic, dynamic> toMap() => {
         'manufacturer_id': manufacturerId,
-        'data': _hexEncode(data ?? []),
-        'mask': _hexEncode(mask ?? []),
+        'data': data?.toHexString(),
+        'mask': mask?.toHexString(),
       };
 }
 
 class BmServiceDataFilter {
   Uuid service;
   List<int> data;
-  List<int> mask;
+  List<int>? mask;
   BmServiceDataFilter(this.service, this.data, this.mask);
   Map<dynamic, dynamic> toMap() => {
         'service': service.string,
-        'data': _hexEncode(data),
-        'mask': _hexEncode(mask),
+        'data': data.toHexString(),
+        'mask': mask?.toHexString(),
       };
 }
 
@@ -122,10 +123,10 @@ class BmScanAdvertisement {
         txPowerLevel = json['tx_power_level'],
         appearance = json['appearance'],
         manufacturerData =
-            json['manufacturer_data']?.map<int, List<int>>((key, value) => MapEntry(key as int, _hexDecode(value))) ??
+            json['manufacturer_data']?.map<int, List<int>>((key, value) => MapEntry(key as int, hexDecode(value))) ??
                 {},
         serviceData =
-            json['service_data']?.map<Uuid, List<int>>((key, value) => MapEntry(Uuid(key), _hexDecode(value))) ?? {},
+            json['service_data']?.map<Uuid, List<int>>((key, value) => MapEntry(Uuid(key), hexDecode(value))) ?? {},
         serviceUuids = json['service_uuids']?.map((v) => Uuid(v)).toList() ?? [],
         rssi = json['rssi'] ?? 0;
 }
@@ -159,17 +160,10 @@ class BmScanResponse extends BmStatus {
 
 class BmConnectRequest {
   String address;
-  bool autoConnect;
 
-  BmConnectRequest({
-    required this.address,
-    required this.autoConnect,
-  });
+  BmConnectRequest({required this.address});
 
-  Map<dynamic, dynamic> toMap() => {
-        'remote_id': address,
-        'auto_connect': autoConnect ? 1 : 0,
-      };
+  Map<dynamic, dynamic> toMap() => {'remote_id': address};
 }
 
 class BmBluetoothDevice {
@@ -286,7 +280,7 @@ class BmCharacteristicData extends BmStatus {
   BmCharacteristicData.fromMap(Map<dynamic, dynamic> json)
       : address = json['remote_id'],
         identifier = json['identifier'],
-        value = _hexDecode(json['value']),
+        value = hexDecode(json['value']),
         super.fromMap(json);
 }
 
@@ -329,8 +323,8 @@ class BmWriteCharacteristicRequest {
         'remote_id': address,
         'identifier': identifier,
         'write_type': writeType.index,
-        'allow_long_write': allowLongWrite ? 1 : 0,
-        'value': _hexEncode(value),
+        'allow_long_write': allowLongWrite,
+        'value': value.toHexString(),
       };
 }
 
@@ -348,7 +342,7 @@ class BmWriteDescriptorRequest {
   Map<dynamic, dynamic> toMap() => {
         'remote_id': address,
         'identifier': identifier,
-        'value': _hexEncode(value),
+        'value': value.toHexString(),
       };
 }
 
@@ -360,7 +354,7 @@ class BmDescriptorData extends BmStatus {
   BmDescriptorData.fromMap(Map<dynamic, dynamic> json)
       : address = json['remote_id'],
         identifier = json['identifier'],
-        value = _hexDecode(json['value']),
+        value = hexDecode(json['value']),
         super.fromMap(json);
 }
 
